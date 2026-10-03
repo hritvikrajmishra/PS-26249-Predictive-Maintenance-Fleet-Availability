@@ -22,6 +22,14 @@ class Settings(BaseSettings):
         default="postgresql+asyncpg://fleetmaint:fleetmaint@localhost:5432/fleetmaint_test",
         description="Async PostgreSQL connection string for testing",
     )
+    test_database_url: str | None = Field(
+        default=None,
+        description="Alias for database_url_test (supports TEST_DATABASE_URL env var)",
+    )
+
+    @property
+    def effective_test_database_url(self) -> str:
+        return self.test_database_url or self.database_url_test
 
     # Server
     api_host: str = Field(default="127.0.0.1", description="Host interface to bind")

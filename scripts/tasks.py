@@ -171,14 +171,27 @@ def run_lint() -> int:
     return 0
 
 
-def run_migrate() -> int:
-    """Provide a clear message regarding migration status."""
+def run_migrate(args: list[str] | None = None) -> int:
+    """Run Alembic database migrations."""
     print("=" * 60)
-    print("Database Migration Status")
+    print("Running Database Migrations (Alembic)")
     print("=" * 60)
-    print("[PHASE 0] Database migrations are not implemented until Phase 1.")
-    print("          Phase 1 will introduce the full relational schema via Alembic.")
-    print("          Native PostgreSQL connectivity is verified via /api/v1/health.")
+
+    alembic_args = [sys.executable, "-m", "alembic"]
+    if not args:
+        # Default action: upgrade head
+        alembic_args.extend(["upgrade", "head"])
+    else:
+        alembic_args.extend(args)
+
+    print(f"Executing: {' '.join(alembic_args)}\n")
+    res = subprocess.run(alembic_args, cwd=str(ROOT_DIR))
+    if res.returncode != 0:
+        print(f"\n[FAILED] Migration failed with exit code {res.returncode}")
+        return res.returncode
+
+    print("\n" + "=" * 60)
+    print("[SUCCESS] Database migration completed successfully!")
     print("=" * 60)
     return 0
 
@@ -193,6 +206,7 @@ def main() -> int:
         return 1
 
     cmd = sys.argv[1].lower()
+    extra_args = sys.argv[2:]
     if cmd == "dev":
         return run_dev()
     elif cmd == "test":
@@ -200,7 +214,7 @@ def main() -> int:
     elif cmd == "lint":
         return run_lint()
     elif cmd == "migrate":
-        return run_migrate()
+        return run_migrate(extra_args)
     elif cmd in ("-h", "--help", "help"):
         print_help()
         return 0
