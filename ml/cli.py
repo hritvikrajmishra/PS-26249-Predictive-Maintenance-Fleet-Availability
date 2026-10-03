@@ -1,12 +1,8 @@
-"""Offline ML CLI entrypoint (Phase 4).
+"""Offline ML CLI entrypoint (Phase 4)."""
 
-Training and evaluation pipeline will be implemented in Phase 4.
-"""
+import sys
 
-
-def main() -> None:
-    print("ML pipeline CLI: scheduled for implementation in Phase 4.")
-
+from ml.train import main
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)
