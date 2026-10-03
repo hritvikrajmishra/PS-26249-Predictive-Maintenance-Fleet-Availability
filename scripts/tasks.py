@@ -5,13 +5,15 @@ Supported commands:
     dev      Start backend (uvicorn) and frontend (Vite) concurrently with graceful shutdown.
     test     Run backend pytest suite and frontend vitest suite.
     lint     Run backend ruff checks/formatting and frontend eslint.
-    migrate  Migration notice (configured in Phase 1).
+    migrate  Run Alembic database migrations.
+    seed     Generate synthetic fleet data and populate PostgreSQL database (Phase 2).
 
 Usage:
     python scripts/tasks.py dev
     python scripts/tasks.py test
     python scripts/tasks.py lint
     python scripts/tasks.py migrate
+    python scripts/tasks.py seed [--seed 42]
 """
 
 import os
@@ -196,6 +198,25 @@ def run_migrate(args: list[str] | None = None) -> int:
     return 0
 
 
+def run_seed(args: list[str] | None = None) -> int:
+    """Run synthetic data generator to seed the database."""
+    print("=" * 60)
+    print("Seeding Synthetic Fleet Data (data_gen)")
+    print("=" * 60)
+
+    gen_args = [sys.executable, "-m", "data_gen", "generate"]
+    if args:
+        gen_args.extend(args)
+    else:
+        gen_args.extend(["--seed", "42"])
+
+    res = subprocess.run(gen_args, cwd=str(ROOT_DIR))
+    if res.returncode != 0:
+        print(f"\n[FAILED] Data seeding failed with exit code {res.returncode}")
+        return res.returncode
+    return 0
+
+
 def print_help() -> None:
     print(__doc__)
 
@@ -215,11 +236,13 @@ def main() -> int:
         return run_lint()
     elif cmd == "migrate":
         return run_migrate(extra_args)
+    elif cmd == "seed":
+        return run_seed(extra_args)
     elif cmd in ("-h", "--help", "help"):
         print_help()
         return 0
     else:
-        print(f"Unknown command: '{cmd}'. Supported commands: dev, test, lint, migrate")
+        print(f"Unknown command: '{cmd}'. Supported commands: dev, test, lint, migrate, seed")
         return 1
 
 
