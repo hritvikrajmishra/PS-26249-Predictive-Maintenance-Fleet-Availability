@@ -7,6 +7,7 @@ Supported commands:
     lint     Run backend ruff checks/formatting and frontend eslint.
     seed     Generate synthetic fleet data and populate PostgreSQL database (Phase 2).
     train    Run offline ML training and evaluation pipeline (Phase 4).
+    engine   Run predictive maintenance scoring engine to generate advisories and alerts (Phase 5).
 
 Usage:
     python scripts/tasks.py dev
@@ -15,6 +16,7 @@ Usage:
     python scripts/tasks.py migrate
     python scripts/tasks.py seed [--seed 42]
     python scripts/tasks.py train [--all]
+    python scripts/tasks.py engine [--as-of YYYY-MM-DD] [--aircraft AC-017]
 """
 
 import os
@@ -242,6 +244,28 @@ def run_train(args: list[str] | None = None) -> int:
     return 0
 
 
+def run_engine(args: list[str] | None = None) -> int:
+    """Run predictive maintenance scoring engine to generate advisories and alerts (Phase 5)."""
+    print("=" * 60)
+    print("Running Predictive Maintenance Engine (app.engine.cli)")
+    print("=" * 60)
+
+    engine_args = [sys.executable, "-m", "app.engine.cli"]
+    if args:
+        engine_args.extend(args)
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = (
+        str(BACKEND_DIR) + os.pathsep + str(ROOT_DIR) + os.pathsep + env.get("PYTHONPATH", "")
+    )
+
+    res = subprocess.run(engine_args, cwd=str(ROOT_DIR), env=env)
+    if res.returncode != 0:
+        print(f"\n[FAILED] Engine batch execution failed with exit code {res.returncode}")
+        return res.returncode
+    return 0
+
+
 def print_help() -> None:
     print(__doc__)
 
@@ -265,12 +289,14 @@ def main() -> int:
         return run_seed(extra_args)
     elif cmd == "train":
         return run_train(extra_args)
+    elif cmd == "engine":
+        return run_engine(extra_args)
     elif cmd in ("-h", "--help", "help"):
         print_help()
         return 0
     else:
         print(
-            f"Unknown command: '{cmd}'. Supported commands: dev, test, lint, migrate, seed, train"
+            f"Unknown command: '{cmd}'. Supported commands: dev, test, lint, migrate, seed, train, engine"
         )
         return 1
 
