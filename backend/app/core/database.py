@@ -2,7 +2,7 @@ import logging
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from sqlalchemy import text
+from sqlalchemy import pool, text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -26,7 +26,7 @@ def get_engine() -> AsyncEngine:
             settings.database_url,
             echo=False,
             future=True,
-            pool_pre_ping=True,
+            poolclass=pool.NullPool,
         )
     return _engine
 
