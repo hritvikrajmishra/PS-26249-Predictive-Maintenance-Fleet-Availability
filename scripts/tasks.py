@@ -5,8 +5,8 @@ Supported commands:
     dev      Start backend (uvicorn) and frontend (Vite) concurrently with graceful shutdown.
     test     Run backend pytest suite and frontend vitest suite.
     lint     Run backend ruff checks/formatting and frontend eslint.
-    migrate  Run Alembic database migrations.
     seed     Generate synthetic fleet data and populate PostgreSQL database (Phase 2).
+    train    Run offline ML training and evaluation pipeline (Phase 4).
 
 Usage:
     python scripts/tasks.py dev
@@ -14,6 +14,7 @@ Usage:
     python scripts/tasks.py lint
     python scripts/tasks.py migrate
     python scripts/tasks.py seed [--seed 42]
+    python scripts/tasks.py train [--all]
 """
 
 import os
@@ -217,6 +218,30 @@ def run_seed(args: list[str] | None = None) -> int:
     return 0
 
 
+def run_train(args: list[str] | None = None) -> int:
+    """Run offline ML training and evaluation pipeline (Phase 4)."""
+    print("=" * 60)
+    print("Running ML Training & Evaluation Pipeline (ml.train)")
+    print("=" * 60)
+
+    train_args = [sys.executable, "-m", "ml.train"]
+    if args:
+        train_args.extend(args)
+    else:
+        train_args.append("--all")
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = (
+        str(BACKEND_DIR) + os.pathsep + str(ROOT_DIR) + os.pathsep + env.get("PYTHONPATH", "")
+    )
+
+    res = subprocess.run(train_args, cwd=str(ROOT_DIR), env=env)
+    if res.returncode != 0:
+        print(f"\n[FAILED] ML pipeline training failed with exit code {res.returncode}")
+        return res.returncode
+    return 0
+
+
 def print_help() -> None:
     print(__doc__)
 
@@ -238,11 +263,15 @@ def main() -> int:
         return run_migrate(extra_args)
     elif cmd == "seed":
         return run_seed(extra_args)
+    elif cmd == "train":
+        return run_train(extra_args)
     elif cmd in ("-h", "--help", "help"):
         print_help()
         return 0
     else:
-        print(f"Unknown command: '{cmd}'. Supported commands: dev, test, lint, migrate, seed")
+        print(
+            f"Unknown command: '{cmd}'. Supported commands: dev, test, lint, migrate, seed, train"
+        )
         return 1
 
 
