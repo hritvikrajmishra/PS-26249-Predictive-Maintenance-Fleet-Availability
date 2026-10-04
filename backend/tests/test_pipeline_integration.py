@@ -2,10 +2,59 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import delete, select
 
+from app.core.database import get_session_factory
 from app.main import app
+from app.models.fleet import Component
+from app.models.maintenance import WorkOrder
+from app.models.platform import Advisory
+
+
+@pytest.fixture
+async def isolated_pipeline_advisory() -> None:
+    """Ensure AC-017 starts and ends with an isolated advisory state for the integration test."""
+    target_date = date(2025, 11, 25)
+    comp_subq = select(Component.component_id).where(Component.aircraft_id == "AC-017")
+    session_factory = get_session_factory()
+
+    # Clean existing mutated advisories and line work orders for AC-017 on target date
+    async with session_factory() as session:
+        await session.execute(
+            delete(Advisory).where(
+                Advisory.as_of_date == target_date,
+                Advisory.component_id.in_(comp_subq),
+            )
+        )
+        await session.execute(
+            delete(WorkOrder).where(
+                WorkOrder.aircraft_id == "AC-017",
+                WorkOrder.agency_id == "AG-LINE-01",
+            )
+        )
+        await session.commit()
+
+    yield
+
+    # Clean up test-created work orders and advisories
+    async with session_factory() as session:
+        await session.execute(
+            delete(WorkOrder).where(
+                WorkOrder.aircraft_id == "AC-017",
+                WorkOrder.agency_id == "AG-LINE-01",
+            )
+        )
+        await session.execute(
+            delete(Advisory).where(
+                Advisory.as_of_date == target_date,
+                Advisory.component_id.in_(comp_subq),
+            )
+        )
+        await session.commit()
 
 
 @pytest.fixture
@@ -22,7 +71,9 @@ async def planner_auth() -> dict[str, str]:
 
 
 @pytest.mark.asyncio
-async def test_full_pipeline_integration(planner_auth: dict[str, str]) -> None:
+async def test_full_pipeline_integration(
+    planner_auth: dict[str, str], isolated_pipeline_advisory: None
+) -> None:
     """Verify end-to-end chain:
 
     1. Trigger engine scoring for hero aircraft AC-017 as of 2025-11-25.
