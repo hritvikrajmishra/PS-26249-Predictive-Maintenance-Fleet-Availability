@@ -2,9 +2,9 @@
 
 > **SYNTHETIC DATA NOTICE:** All metrics and predictions reported here are evaluated exclusively on synthetic fleet operational data generated for decision-support prototyping. Ground truth health (`simulation_truth`) was strictly excluded from training and feature engineering.
 
-*Generated at:* `2026-10-03 16:41:01 UTC`  
-*Repository Branch:* `phase-4-ml-pipeline`  
-*Target Environment:* Laptop CPU, No Deep Learning  
+*Generated at:* `2026-10-04 15:44:07 UTC`
+*Repository Branch:* `phase-4-ml-pipeline`
+*Target Environment:* Laptop CPU, No Deep Learning
 
 ---
 
@@ -25,8 +25,8 @@ Splits are strictly temporal (Train: 2023-01 to 2024-06; Val: 2024-07 to 2024-12
 
 | Model | PR-AUC | ROC-AUC | Brier Score | Recall @ Prec $\ge$ 0.50 | Status |
 |---|---|---|---|---|---|
-| **Calibrated LightGBM** | **0.1484** | **0.8839** | **0.0097** | **0.1188** | **BEATS BASELINE** |
-| Logistic Regression (Baseline) | 0.0476 | 0.8178 | 0.5369 | 0.0 | Baseline |
+| **Calibrated LightGBM** | **0.1479** | **0.8613** | **0.0098** | **0.1232** | **BEATS BASELINE** |
+| Logistic Regression (Baseline) | 0.0476 | 0.8166 | 0.5332 | 0.0 | Baseline |
 
 **Key Findings:**
 - LightGBM captures non-linear interactions between rolling slope, within-flight sensor flutter, and cumulative flight hours since overhaul.
@@ -43,11 +43,11 @@ Target is clipped at 60.0 days (standard C-MAPSS formulation).
 
 | Model | MAE (days) | C-MAPSS Asymmetric Score | 10–90% Interval Coverage | Status |
 |---|---|---|---|---|
-| **Quantile LightGBM ($P_{50}$)** | **1.19** | **2.65** | **98.1%** | **BEATS BASELINE** |
-| Linear Trend Extrapolation (Baseline) | 44.12 | 61.89 | N/A (point est.) | Baseline |
+| **Quantile LightGBM ($P_{50}$)** | **1.19** | **2.65** | **98.2%** | **BEATS BASELINE** |
+| Linear Trend Extrapolation (Baseline) | 44.01 | 61.55 | N/A (point est.) | Baseline |
 
 **Key Findings:**
-- The $P_{10} - P_{90}$ quantile band covers ~98.1% of ground truth test observations, providing planners with an auditable confidence interval rather than a misleading single date.
+- The $P_{10} - P_{90}$ quantile band covers ~98.2% of ground truth test observations, providing planners with an auditable confidence interval rather than a misleading single date.
 - The asymmetric penalty penalises dangerous late predictions ($y_{pred} > y_{true}$) significantly more than early predictions.
 
 ![RUL Error Distribution](figures/rul_error_distribution.png)
@@ -58,8 +58,8 @@ Target is clipped at 60.0 days (standard C-MAPSS formulation).
 
 | Method | False Alarm Rate (per 1,000 flights) | Degradation Recall | Mean Lead Time |
 |---|---|---|---|
-| **Residuals + Isolation Forest** | **234.44** | **83.1%** | **15.1 days** |
-| Rolling $Z$-score (Baseline) | 624.36 | 88.1% | 15.1 days |
+| **Residuals + Isolation Forest** | **224.46** | **82.9%** | **15.1 days** |
+| Rolling $Z$-score (Baseline) | 620.64 | 88.1% | 15.1 days |
 
 ![Hero Aircraft AC-017 Anomaly Timeline](figures/hero_ac017_timeline.png)
 

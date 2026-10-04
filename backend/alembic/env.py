@@ -14,6 +14,11 @@ backend_dir = Path(__file__).resolve().parent.parent
 if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
+# Psycopg async driver requires SelectorEventLoop on Windows
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
 from app.config import get_settings  # noqa: E402
 from app.models.base import Base  # noqa: E402
 
@@ -31,13 +36,13 @@ target_metadata = Base.metadata
 
 def get_db_url() -> str:
     """Resolve database URL from config, env vars, or app settings."""
-    # 1. Direct environment override (e.g. during test runs)
+    # 1. Direct environment override (e.g. during test runs or CLI commands)
+    if os.environ.get("DATABASE_URL"):
+        return os.environ["DATABASE_URL"]
     if os.environ.get("TEST_DATABASE_URL"):
         return os.environ["TEST_DATABASE_URL"]
     if os.environ.get("DATABASE_URL_TEST"):
         return os.environ["DATABASE_URL_TEST"]
-    if os.environ.get("DATABASE_URL"):
-        return os.environ["DATABASE_URL"]
 
     # 2. Alembic custom config
     cfg_url = config.get_main_option("sqlalchemy.url")

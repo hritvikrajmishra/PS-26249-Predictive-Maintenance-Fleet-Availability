@@ -49,7 +49,7 @@ def load_advisory_rules() -> dict[str, Any]:
                 "w5_availability_impact": 0.10,
             },
             "thresholds": {
-                "p1_critical": 0.70,
+                "p1_critical": 0.80,
                 "p2_high": 0.45,
                 "p3_medium": 0.25,
                 "p4_routine": 0.00,
@@ -149,7 +149,7 @@ def calculate_priority_score(
 
     # Thresholds
     th = cfg.get("thresholds", {})
-    p1_th = float(th.get("p1_critical", 0.70))
+    p1_th = float(th.get("p1_critical", 0.80))
     p2_th = float(th.get("p2_high", 0.45))
     p3_th = float(th.get("p3_medium", 0.25))
 

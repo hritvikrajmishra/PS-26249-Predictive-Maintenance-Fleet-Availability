@@ -9,7 +9,7 @@ weights:
   w5_availability_impact: 0.10   # Relative downtime impact if run to failure
 
 thresholds:
-  p1_critical: 0.70              # Score >= 0.70 -> Priority P1 (Ground / Immediate)
+  p1_critical: 0.80              # Score >= 0.80 -> Priority P1 (Ground / Immediate)
   p2_high: 0.45                  # Score >= 0.45 -> Priority P2 (Replace within 7-14 days)
   p3_medium: 0.25                # Score >= 0.25 -> Priority P3 (Inspect / Plan soon)
   p4_routine: 0.00               # Score < 0.25  -> Priority P4 (Monitor / Routine)

@@ -116,26 +116,43 @@ def run_dev() -> int:
     return 0
 
 
-def run_test() -> int:
-    """Run pytest suite and frontend test suite."""
+def run_test(args: list[str] | None = None) -> int:
+    """Run pytest suite, frontend test suite, and optional Playwright e2e."""
+    args = args or []
+    run_e2e = "--e2e" in args or "--all" in args
+    pytest_extra = [a for a in args if a not in ("--e2e", "--all")]
+
     print("=" * 60)
-    print("Running Test Suites")
+    print("Running Test Suites (Phase 10 Testing & Validation)")
     print("=" * 60)
 
-    # 1. Backend tests
-    print("\n--- [1/2] Running Backend Tests (pytest) ---")
-    pytest_res = subprocess.run([sys.executable, "-m", "pytest"], cwd=str(ROOT_DIR))
+    # 1. Backend & ML tests (Unit, API, DB, Data Validation, Regression, Integration)
+    print("\n--- [1/2] Running Backend & ML Tests (pytest) ---")
+    pytest_cmd = [sys.executable, "-m", "pytest"]
+    if pytest_extra:
+        pytest_cmd.extend(pytest_extra)
+    pytest_res = subprocess.run(pytest_cmd, cwd=str(ROOT_DIR))
     if pytest_res.returncode != 0:
         print(f"\n[FAILED] Backend tests failed with exit code {pytest_res.returncode}")
         return pytest_res.returncode
 
-    # 2. Frontend tests
+    # 2. Frontend component & unit tests (vitest)
     print("\n--- [2/2] Running Frontend Tests (vitest) ---")
     npm_cmd = get_npm_cmd()
     frontend_res = subprocess.run([npm_cmd, "test"], cwd=str(FRONTEND_DIR))
     if frontend_res.returncode != 0:
         print(f"\n[FAILED] Frontend tests failed with exit code {frontend_res.returncode}")
         return frontend_res.returncode
+
+    # 3. Optional / flag-triggered Playwright E2E
+    if run_e2e:
+        print("\n--- [3/3] Running End-to-End Walkthrough (Playwright) ---")
+        node_env = os.environ.copy()
+        node_env["NODE_PATH"] = str(FRONTEND_DIR / "node_modules")
+        e2e_res = subprocess.run([npm_cmd, "run", "test:e2e"], cwd=str(FRONTEND_DIR), env=node_env)
+        if e2e_res.returncode != 0:
+            print(f"\n[FAILED] Playwright E2E tests failed with exit code {e2e_res.returncode}")
+            return e2e_res.returncode
 
     print("\n" + "=" * 60)
     print("[SUCCESS] All test suites passed!")
@@ -195,6 +212,19 @@ def run_migrate(args: list[str] | None = None) -> int:
         print(f"\n[FAILED] Migration failed with exit code {res.returncode}")
         return res.returncode
 
+    # If distinct test database is configured, ensure it is also migrated
+    test_db = os.environ.get("TEST_DATABASE_URL") or os.environ.get("DATABASE_URL_TEST")
+    main_db = os.environ.get("DATABASE_URL")
+    if test_db and main_db and test_db != main_db:
+        print(f"\nApplying migrations to test database: {test_db.split('@')[-1]}")
+        test_env = os.environ.copy()
+        test_env["DATABASE_URL"] = test_db
+        test_env["TEST_DATABASE_URL"] = test_db
+        res_test = subprocess.run(alembic_args, cwd=str(ROOT_DIR), env=test_env)
+        if res_test.returncode != 0:
+            print(f"\n[FAILED] Test database migration failed with exit code {res_test.returncode}")
+            return res_test.returncode
+
     print("\n" + "=" * 60)
     print("[SUCCESS] Database migration completed successfully!")
     print("=" * 60)
@@ -213,7 +243,12 @@ def run_seed(args: list[str] | None = None) -> int:
     else:
         gen_args.extend(["--seed", "42"])
 
-    res = subprocess.run(gen_args, cwd=str(ROOT_DIR))
+    env = os.environ.copy()
+    env["PYTHONPATH"] = (
+        str(BACKEND_DIR) + os.pathsep + str(ROOT_DIR) + os.pathsep + env.get("PYTHONPATH", "")
+    )
+
+    res = subprocess.run(gen_args, cwd=str(ROOT_DIR), env=env)
     if res.returncode != 0:
         print(f"\n[FAILED] Data seeding failed with exit code {res.returncode}")
         return res.returncode
@@ -280,7 +315,7 @@ def main() -> int:
     if cmd == "dev":
         return run_dev()
     elif cmd == "test":
-        return run_test()
+        return run_test(extra_args)
     elif cmd == "lint":
         return run_lint()
     elif cmd == "migrate":

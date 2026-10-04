@@ -132,6 +132,17 @@ async def test_list_advisories_and_detail(planner_auth: dict[str, str]):
         assert res.status_code == 200
         data = res.json()
         assert "items" in data
+        if data["total"] == 0:
+            await client.post(
+                "/api/v1/engine/run",
+                json={"as_of_date": "2025-11-25", "aircraft_id": "AC-017", "dry_run": False},
+                headers=planner_auth,
+            )
+            res = await client.get(
+                "/api/v1/advisories?aircraft_id=AC-017",
+                headers=planner_auth,
+            )
+            data = res.json()
         assert data["total"] >= 1
 
         adv = data["items"][0]
@@ -176,6 +187,16 @@ async def test_advisory_workflow_transitions(commander_auth: dict[str, str]):
         )
         assert res_list.status_code == 200
         items = res_list.json()["items"]
+        if not items:
+            await client.post(
+                "/api/v1/engine/run",
+                json={"as_of_date": "2025-11-25", "aircraft_id": "AC-017", "dry_run": False},
+                headers=commander_auth,
+            )
+            res_list = await client.get(
+                "/api/v1/advisories?status=proposed&page_size=5", headers=commander_auth
+            )
+            items = res_list.json()["items"]
         if not items:
             pytest.skip("No proposed advisories in test DB to exercise transition")
 
