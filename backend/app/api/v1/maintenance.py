@@ -2,10 +2,10 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, require_roles
 from app.core.database import get_db
 from app.models.platform import User
 from app.schemas.common import PaginatedResponse
@@ -13,6 +13,7 @@ from app.schemas.maintenance import (
     AgencyOut,
     MaintenanceEventOut,
     ScheduledTaskOut,
+    WorkOrderCreateIn,
     WorkOrderOut,
 )
 from app.services import maintenance_service
@@ -43,6 +44,21 @@ async def list_work_orders(
         page=page,
         page_size=page_size,
     )
+
+
+@router.post(
+    "/work-orders",
+    response_model=WorkOrderOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create maintenance work order",
+)
+async def create_work_order(
+    payload: WorkOrderCreateIn,
+    _: Annotated[User, Depends(require_roles("planner", "commander"))],
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> WorkOrderOut:
+    """Schedule and create a maintenance work order assigned to a workshop agency bay."""
+    return await maintenance_service.create_work_order(session, payload=payload)
 
 
 @router.get(

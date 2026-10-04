@@ -237,6 +237,8 @@ export interface AdvisoryOut {
     rule?: string;
     factors?: Record<string, number | string>;
     top_drivers?: Array<{ feature: string; impact: number }>;
+    top_shap_factors?: Array<{ feature: string; shap_impact: number }>;
+    top_factors?: Array<{ feature: string; shap_impact?: number; impact?: number }>;
     text?: string;
     [key: string]: unknown;
   } | null;
@@ -429,6 +431,18 @@ export interface WorkOrderOut {
   delay_reason: string | null;
 }
 
+export interface WorkOrderCreateIn {
+  aircraft_id: string;
+  component_id?: string | null;
+  advisory_id?: string | null;
+  agency_id: string;
+  priority?: string;
+  planned_start?: string | null;
+  promised_done?: string | null;
+  bundle_inspection?: boolean;
+  delay_reason?: string | null;
+}
+
 export interface MaintenanceEventOut {
   event_id: string;
   aircraft_id: string;
@@ -501,4 +515,14 @@ export interface FaultEventOut {
   severity: string;
   description: string;
   source: string;
+}
+
+export interface AnomalyScoreOut {
+  score_id: number;
+  component_id: string;
+  flight_id: string;
+  date?: string | null;
+  score: number;
+  is_anomaly: boolean;
+  top_parameters?: Record<string, unknown> | null;
 }

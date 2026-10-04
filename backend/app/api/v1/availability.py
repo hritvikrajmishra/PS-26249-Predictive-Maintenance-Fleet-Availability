@@ -50,6 +50,10 @@ async def get_fleet_kpis(
         date | None,
         Query(alias="to", description="End date for KPI aggregation (YYYY-MM-DD)"),
     ] = None,
+    as_of: Annotated[
+        date | None,
+        Query(description="As-of cutoff date (YYYY-MM-DD)"),
+    ] = None,
     group_by: Annotated[
         str | None,
         Query(description="Optional grouping: 'component_type' or 'none'"),
@@ -59,10 +63,15 @@ async def get_fleet_kpis(
 
     turnaround, failure rate, backlog, readiness proxy, and spare fill rate (§7).
     """
+    effective_to = to_date or as_of
+    effective_from = from_date
+    if effective_to and not effective_from:
+        effective_from = effective_to - timedelta(days=30)
+
     data = await fetch_fleet_kpis(
         session=session,
-        from_date=from_date,
-        to_date=to_date,
+        from_date=effective_from,
+        to_date=effective_to,
         group_by=group_by,
     )
     return KpiResponse.model_validate(data)
@@ -107,6 +116,10 @@ async def get_fleet_availability_trend(
         date | None,
         Query(alias="to", description="Historical end date (YYYY-MM-DD)"),
     ] = None,
+    as_of: Annotated[
+        date | None,
+        Query(description="As of snapshot date (YYYY-MM-DD)"),
+    ] = None,
     horizon: Annotated[
         int,
         Query(ge=7, le=90, description="Forward forecast horizon in days"),
@@ -116,6 +129,11 @@ async def get_fleet_availability_trend(
 
     simulation projection including P10, median, and P90 confidence intervals.
     """
+    effective_to = to_date or as_of
+    effective_from = from_date
+    if effective_to and not effective_from:
+        effective_from = effective_to - timedelta(days=horizon)
+
     points: list[AvailabilityTrendPoint] = []
 
     # 1. Query historical daily availability from AircraftDailyStatus
@@ -124,16 +142,16 @@ async def get_fleet_availability_trend(
         func.count(AircraftDailyStatus.id).label("total"),
         func.sum(case((AircraftDailyStatus.status == "Available", 1), else_=0)).label("available"),
     )
-    if from_date:
-        hist_stmt = hist_stmt.where(AircraftDailyStatus.date >= from_date)
-    if to_date:
-        hist_stmt = hist_stmt.where(AircraftDailyStatus.date <= to_date)
+    if effective_from:
+        hist_stmt = hist_stmt.where(AircraftDailyStatus.date >= effective_from)
+    if effective_to:
+        hist_stmt = hist_stmt.where(AircraftDailyStatus.date <= effective_to)
 
     hist_stmt = hist_stmt.group_by(AircraftDailyStatus.date).order_by(AircraftDailyStatus.date)
     hist_res = await session.execute(hist_stmt)
     hist_rows = hist_res.all()
 
-    last_date = datetime.utcnow().date()
+    last_date = effective_to or datetime.utcnow().date()
     for row in hist_rows:
         d = row[0]
         last_date = d
@@ -156,6 +174,7 @@ async def get_fleet_availability_trend(
         horizon_days=horizon,
         runs=150,  # Fast run for inline trend visualization
         seed=42,
+        as_of=effective_to,
     )
     from app.availability.simulator import FleetSimulator
 

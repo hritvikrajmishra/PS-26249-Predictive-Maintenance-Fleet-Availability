@@ -212,3 +212,30 @@ async def test_ingest_sensor_readings_per_row_errors():
         assert data["errors"][0]["field"] == "flight_id"
         assert data["errors"][1]["field"] == "component_id"
         assert data["errors"][2]["field"] == "min"
+
+
+@pytest.mark.asyncio
+async def test_get_component_anomalies():
+    """Verify retrieving anomaly scores timeline for a component."""
+    token = await get_token_for_role("planner")
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Check AC-017 hydraulic pump or any active component
+        comps_res = await client.get(
+            "/api/v1/components?aircraft_id=AC-017&page_size=1",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        comp_id = comps_res.json()["items"][0]["component_id"]
+
+        res = await client.get(
+            f"/api/v1/components/{comp_id}/anomalies",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert isinstance(data, list)
+        if len(data) > 0:
+            assert "score" in data[0]
+            assert "threshold" in data[0]
+            assert "is_anomaly" in data[0]
+            assert "date" in data[0]

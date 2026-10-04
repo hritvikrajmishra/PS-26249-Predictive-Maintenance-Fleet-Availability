@@ -93,6 +93,7 @@ class WorkOrder(Base):
     __table_args__ = (
         Index("ix_work_orders_status_agency_id", "status", "agency_id"),
         Index("ix_work_orders_aircraft_id", "aircraft_id"),
+        Index("ix_work_orders_advisory_id", "advisory_id"),
         CheckConstraint(
             "status IN ('open', 'in_progress', 'awaiting_spares', 'awaiting_agency', 'completed', 'cancelled')",
             name="ck_work_orders_status_valid",

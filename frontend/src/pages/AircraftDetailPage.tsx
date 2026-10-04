@@ -69,6 +69,7 @@ export const AircraftDetailPage: React.FC = () => {
   });
   const { data: advisoriesData } = useAdvisories({
     aircraft_id: activeAircraftId,
+    as_of_date: asOfDate || undefined,
     page_size: 10,
   });
 

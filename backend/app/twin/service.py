@@ -77,7 +77,10 @@ async def get_fleet_twin(
     snap_res = await session.execute(snap_query)
     aircraft_snaps = snap_res.scalars().all()
 
-    if aircraft_snaps:
+    total_ac_res = await session.execute(select(func.count(Aircraft.aircraft_id)))
+    total_ac_count = total_ac_res.scalar_one()
+
+    if aircraft_snaps and len(aircraft_snaps) >= total_ac_count and total_ac_count > 0:
         # Build fleet response directly from snapshots
         ac_ids = [s.node_id for s in aircraft_snaps]
         ac_query = select(Aircraft).where(Aircraft.aircraft_id.in_(ac_ids))

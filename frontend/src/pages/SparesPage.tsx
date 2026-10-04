@@ -19,6 +19,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { LoadingSkeleton } from '../components/feedback/LoadingSkeleton';
 import { EmptyState } from '../components/feedback/EmptyState';
+import { useAuth } from '../hooks/useAuth';
 import {
   useInventory,
   useSpareParts,
@@ -47,6 +48,7 @@ interface MergedPartRow {
 
 export const SparesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { asOfDate } = useAuth();
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,6 +63,7 @@ export const SparesPage: React.FC = () => {
     page_size: 150,
   });
   const { data: advisoriesData, isLoading: loadingAdvisories } = useAdvisories({
+    as_of_date: asOfDate || undefined,
     page_size: 100,
   });
   const { data: transactionsData, isLoading: loadingTxns } = useInventoryTransactions({

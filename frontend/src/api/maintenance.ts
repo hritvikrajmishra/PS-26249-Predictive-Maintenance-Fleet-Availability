@@ -4,6 +4,7 @@ import type {
   MaintenanceEventOut,
   PaginatedResponse,
   ScheduledTaskOut,
+  WorkOrderCreateIn,
   WorkOrderOut,
 } from '../types/api';
 
@@ -16,6 +17,9 @@ export const maintenanceApi = {
     page?: number;
     page_size?: number;
   }) => api.get<PaginatedResponse<WorkOrderOut>>('/work-orders', params),
+
+  createWorkOrder: (payload: WorkOrderCreateIn) =>
+    api.post<WorkOrderOut>('/work-orders', payload),
 
   listMaintenanceEvents: (params?: {
     aircraft_id?: string;

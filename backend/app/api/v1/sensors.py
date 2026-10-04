@@ -10,6 +10,7 @@ from app.core.auth import get_current_user, require_roles
 from app.core.database import get_db
 from app.models.platform import User
 from app.schemas.sensors import (
+    AnomalyScoreOut,
     FaultEventOut,
     IngestResultOut,
     IngestSensorReadingsRequest,
@@ -39,6 +40,29 @@ async def get_component_sensors(
         session,
         component_id=id,
         parameter=parameter,
+        from_date=from_date,
+        to_date=to_date,
+        limit=limit,
+    )
+
+
+@router.get(
+    "/components/{id}/anomalies",
+    response_model=list[AnomalyScoreOut],
+    summary="Get component anomaly score timeline",
+)
+async def get_component_anomalies(
+    id: str,
+    _: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)],
+    from_date: Annotated[date | None, Query(description="Start date (YYYY-MM-DD)")] = None,
+    to_date: Annotated[date | None, Query(description="End date (YYYY-MM-DD)")] = None,
+    limit: Annotated[int, Query(ge=1, le=5000, description="Max readings to return")] = 500,
+) -> list[AnomalyScoreOut]:
+    """Retrieve anomaly score timeline and detection flags for a monitored component instance."""
+    return await sensors_service.get_component_anomalies(
+        session,
+        component_id=id,
         from_date=from_date,
         to_date=to_date,
         limit=limit,

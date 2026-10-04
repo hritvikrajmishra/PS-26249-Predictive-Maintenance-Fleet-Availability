@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useKpis } from '../hooks/useAvailabilityQueries';
 import {
   useWorkOrders,
+  useCreateWorkOrder,
   useAgencies,
   useScheduledTasks,
 } from '../hooks/useMaintenanceQueries';
@@ -52,6 +53,9 @@ export const PlanningPage: React.FC = () => {
   const [slotAgency, setSlotAgency] = useState<string>('AG-BASE-01');
   const [slotBundleInspection, setSlotBundleInspection] = useState<boolean>(true);
   const [slotSuccessMessage, setSlotSuccessMessage] = useState<string | null>(null);
+  const [slotErrorMessage, setSlotErrorMessage] = useState<string | null>(null);
+
+  const createWorkOrderMutation = useCreateWorkOrder();
 
   // Queries
   const { data: kpis, isLoading: loadingKpis } = useKpis(asOfDate);
@@ -277,11 +281,27 @@ export const PlanningPage: React.FC = () => {
   }, [allWorkOrders, scheduledTasks]);
 
   // Handle slot reservation
-  const handleScheduleSlot = (e: React.FormEvent) => {
+  const handleScheduleSlot = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSlotSuccessMessage(
-      `Slot Confirmed: Maintenance work order scheduled for ${slotAircraft} in ${slotAgency}. Bundled with phase inspection (Expected turnaround: 2.5 days).`
-    );
+    setSlotSuccessMessage(null);
+    setSlotErrorMessage(null);
+    try {
+      const created = await createWorkOrderMutation.mutateAsync({
+        aircraft_id: slotAircraft,
+        agency_id: slotAgency,
+        component_id: prefillComponent || undefined,
+        advisory_id: prefillAdvisory || undefined,
+        bundle_inspection: slotBundleInspection,
+        priority: 'P2',
+      });
+      setSlotSuccessMessage(
+        `Slot Confirmed: Maintenance work order #${created.wo_id} successfully scheduled for ${slotAircraft} in ${slotAgency}. Status: ${created.status.toUpperCase()} (Spare reserved, turnaround: 2.5 days).`
+      );
+    } catch (err: unknown) {
+      setSlotErrorMessage(
+        err instanceof Error ? err.message : 'Failed to schedule maintenance slot'
+      );
+    }
   };
 
   return (
@@ -531,11 +551,13 @@ export const PlanningPage: React.FC = () => {
 
           <button
             type="submit"
-            disabled={!canPlan}
+            disabled={!canPlan || createWorkOrderMutation.isPending}
             className="w-full h-[38px] bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:opacity-50 text-white rounded font-semibold flex items-center justify-center space-x-1.5 transition shadow-lg shadow-blue-900/30"
           >
             <Check className="w-4 h-4" />
-            <span>Confirm & Reserve Slot</span>
+            <span>
+              {createWorkOrderMutation.isPending ? 'Scheduling Slot...' : 'Confirm & Reserve Slot'}
+            </span>
           </button>
         </form>
 
@@ -565,6 +587,12 @@ export const PlanningPage: React.FC = () => {
         {slotSuccessMessage && (
           <div className="p-3 bg-emerald-950/60 border border-emerald-500/50 rounded-lg text-emerald-300 text-xs">
             {slotSuccessMessage}
+          </div>
+        )}
+
+        {slotErrorMessage && (
+          <div className="p-3 bg-rose-950/60 border border-rose-500/50 rounded-lg text-rose-300 text-xs">
+            {slotErrorMessage}
           </div>
         )}
       </div>

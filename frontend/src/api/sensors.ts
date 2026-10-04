@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { FaultEventOut, SensorReadingOut } from '../types/api';
+import type { AnomalyScoreOut, FaultEventOut, SensorReadingOut } from '../types/api';
 
 export const sensorsApi = {
   getComponentSensors: (
@@ -11,6 +11,9 @@ export const sensorsApi = {
       limit?: number;
     }
   ) => api.get<SensorReadingOut[]>(`/components/${componentId}/sensors`, params),
+
+  getComponentAnomalies: (componentId: string, params?: { limit?: number }) =>
+    api.get<AnomalyScoreOut[]>(`/components/${componentId}/anomalies`, params),
 
   listFaultEvents: (params?: {
     aircraft_id?: string;

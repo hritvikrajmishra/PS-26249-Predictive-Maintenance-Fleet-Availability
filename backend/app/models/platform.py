@@ -151,6 +151,7 @@ class Advisory(Base):
     __table_args__ = (
         Index("ix_advisories_component_as_of_date", "component_id", "as_of_date"),
         Index("ix_advisories_status_priority", "status", "priority"),
+        Index("ix_advisories_as_of_date", "as_of_date"),
         CheckConstraint(
             "priority IN ('P1', 'P2', 'P3', 'P4')",
             name="ck_advisories_priority_valid",

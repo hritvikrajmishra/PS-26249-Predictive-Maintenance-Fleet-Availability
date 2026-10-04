@@ -7,8 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import NotFoundError
 from app.models.fleet import Component
+from app.models.platform import AnomalyScore
 from app.models.sensors import FaultEvent, Flight, SensorReading
 from app.schemas.sensors import (
+    AnomalyScoreOut,
     FaultEventOut,
     IngestResultOut,
     IngestRowError,
@@ -172,3 +174,39 @@ async def list_fault_events(
     stmt = stmt.order_by(FaultEvent.timestamp.desc()).limit(limit)
     res = await session.execute(stmt)
     return [FaultEventOut.model_validate(fe) for fe in res.scalars().all()]
+
+
+async def get_component_anomalies(
+    session: AsyncSession,
+    component_id: str,
+    from_date: date | None = None,
+    to_date: date | None = None,
+    limit: int = 200,
+) -> list[AnomalyScoreOut]:
+    """Retrieve anomaly scores and detection flags for a component joined with flight date."""
+    query = (
+        select(AnomalyScore, Flight.date)
+        .join(Flight, AnomalyScore.flight_id == Flight.flight_id)
+        .where(AnomalyScore.component_id == component_id)
+    )
+    if from_date:
+        query = query.where(Flight.date >= from_date)
+    if to_date:
+        query = query.where(Flight.date <= to_date)
+    query = query.order_by(Flight.date.asc(), AnomalyScore.score_id.asc()).limit(limit)
+    res = await session.execute(query)
+
+    items = []
+    for anom, fl_date in res.all():
+        items.append(
+            AnomalyScoreOut(
+                score_id=anom.score_id,
+                component_id=anom.component_id,
+                flight_id=anom.flight_id,
+                date=fl_date,
+                score=anom.score,
+                is_anomaly=anom.score >= 0.70,
+                top_parameters=anom.top_parameters,
+            )
+        )
+    return items
