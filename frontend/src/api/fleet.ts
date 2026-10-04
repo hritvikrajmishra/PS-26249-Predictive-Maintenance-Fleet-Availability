@@ -10,17 +10,17 @@ import type {
 
 export const fleetApi = {
   listAircraft: (params?: { state?: string; base?: string; page?: number; page_size?: number }) =>
-    api.get<PaginatedResponse<AircraftListOut>>('/fleet/aircraft', params),
+    api.get<PaginatedResponse<AircraftListOut>>('/aircraft', params),
 
   getAircraftDetail: (id: string) =>
-    api.get<AircraftDetailOut>(`/fleet/aircraft/${id}`),
+    api.get<AircraftDetailOut>(`/aircraft/${id}`),
 
   listSystems: () =>
-    api.get<SystemOut[]>('/fleet/systems'),
+    api.get<SystemOut[]>('/systems'),
 
   listComponentTypes: (params?: { system_id?: string }) =>
-    api.get<ComponentTypeOut[]>('/fleet/component-types', params),
+    api.get<ComponentTypeOut[]>('/component-types', params),
 
   listComponents: (params?: { aircraft_id?: string; status?: string; page?: number; page_size?: number }) =>
-    api.get<PaginatedResponse<ComponentOut>>('/fleet/components', params),
+    api.get<PaginatedResponse<ComponentOut>>('/components', params),
 };
