@@ -72,6 +72,10 @@ jobs:
         run: |
           python scripts/tasks.py train --all
 
+      - name: Build Frontend Production Bundle
+        run: |
+          python scripts/tasks.py build
+
       - name: Run Backend & Frontend Test Suites
         env:
           DATABASE_URL: postgresql+psycopg://fleet:fleet_dev_pw@localhost:5432/fleetmaint
