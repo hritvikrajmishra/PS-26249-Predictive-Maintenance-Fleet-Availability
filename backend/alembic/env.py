@@ -36,13 +36,13 @@ target_metadata = Base.metadata
 
 def get_db_url() -> str:
     """Resolve database URL from config, env vars, or app settings."""
-    # 1. Direct environment override (e.g. during test runs)
+    # 1. Direct environment override (e.g. during test runs or CLI commands)
+    if os.environ.get("DATABASE_URL"):
+        return os.environ["DATABASE_URL"]
     if os.environ.get("TEST_DATABASE_URL"):
         return os.environ["TEST_DATABASE_URL"]
     if os.environ.get("DATABASE_URL_TEST"):
         return os.environ["DATABASE_URL_TEST"]
-    if os.environ.get("DATABASE_URL"):
-        return os.environ["DATABASE_URL"]
 
     # 2. Alembic custom config
     cfg_url = config.get_main_option("sqlalchemy.url")

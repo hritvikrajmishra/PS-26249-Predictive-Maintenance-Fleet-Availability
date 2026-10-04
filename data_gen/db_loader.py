@@ -10,7 +10,9 @@ from data_gen.generator import FleetDataset
 def normalize_db_url(url: str) -> str:
     """Ensure DB URL is in asyncpg format (postgresql://user:pass@host:port/dbname)."""
     if "+asyncpg" in url:
-        return url.replace("+asyncpg", "")
+        url = url.replace("+asyncpg", "")
+    if "+psycopg" in url:
+        url = url.replace("+psycopg", "")
     return url
 
 

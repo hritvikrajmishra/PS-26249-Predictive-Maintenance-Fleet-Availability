@@ -58,9 +58,24 @@ jobs:
         run: |
           python scripts/tasks.py migrate
 
+      - name: Seed Synthetic Fleet Data
+        env:
+          DATABASE_URL: postgresql+psycopg://fleet:fleet_dev_pw@localhost:5432/fleetmaint
+          TEST_DATABASE_URL: postgresql+psycopg://fleet:fleet_dev_pw@localhost:5432/fleetmaint_test
+        run: |
+          python scripts/tasks.py seed --seed 42
+
+      - name: Train ML Models & Generate Artifacts
+        env:
+          DATABASE_URL: postgresql+psycopg://fleet:fleet_dev_pw@localhost:5432/fleetmaint
+          TEST_DATABASE_URL: postgresql+psycopg://fleet:fleet_dev_pw@localhost:5432/fleetmaint_test
+        run: |
+          python scripts/tasks.py train --all
+
       - name: Run Backend & Frontend Test Suites
         env:
           DATABASE_URL: postgresql+psycopg://fleet:fleet_dev_pw@localhost:5432/fleetmaint
           TEST_DATABASE_URL: postgresql+psycopg://fleet:fleet_dev_pw@localhost:5432/fleetmaint_test
         run: |
           python scripts/tasks.py test
+

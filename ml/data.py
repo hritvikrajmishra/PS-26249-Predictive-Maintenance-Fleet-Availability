@@ -53,7 +53,7 @@ async def load_raw_data_async(as_of_date: date | None = None) -> RawFleetData:
     Notice: simulation_truth is NEVER queried or joined.
     """
     settings = get_settings()
-    dsn = settings.database_url.replace("+asyncpg", "")
+    dsn = settings.database_url.replace("+asyncpg", "").replace("+psycopg", "")
     conn = await asyncpg.connect(dsn)
 
     try:

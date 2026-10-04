@@ -212,6 +212,19 @@ def run_migrate(args: list[str] | None = None) -> int:
         print(f"\n[FAILED] Migration failed with exit code {res.returncode}")
         return res.returncode
 
+    # If distinct test database is configured, ensure it is also migrated
+    test_db = os.environ.get("TEST_DATABASE_URL") or os.environ.get("DATABASE_URL_TEST")
+    main_db = os.environ.get("DATABASE_URL")
+    if test_db and main_db and test_db != main_db:
+        print(f"\nApplying migrations to test database: {test_db.split('@')[-1]}")
+        test_env = os.environ.copy()
+        test_env["DATABASE_URL"] = test_db
+        test_env["TEST_DATABASE_URL"] = test_db
+        res_test = subprocess.run(alembic_args, cwd=str(ROOT_DIR), env=test_env)
+        if res_test.returncode != 0:
+            print(f"\n[FAILED] Test database migration failed with exit code {res_test.returncode}")
+            return res_test.returncode
+
     print("\n" + "=" * 60)
     print("[SUCCESS] Database migration completed successfully!")
     print("=" * 60)
@@ -230,7 +243,12 @@ def run_seed(args: list[str] | None = None) -> int:
     else:
         gen_args.extend(["--seed", "42"])
 
-    res = subprocess.run(gen_args, cwd=str(ROOT_DIR))
+    env = os.environ.copy()
+    env["PYTHONPATH"] = (
+        str(BACKEND_DIR) + os.pathsep + str(ROOT_DIR) + os.pathsep + env.get("PYTHONPATH", "")
+    )
+
+    res = subprocess.run(gen_args, cwd=str(ROOT_DIR), env=env)
     if res.returncode != 0:
         print(f"\n[FAILED] Data seeding failed with exit code {res.returncode}")
         return res.returncode
