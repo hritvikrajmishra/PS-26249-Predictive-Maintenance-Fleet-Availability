@@ -2,9 +2,9 @@
 
 > **SYNTHETIC DATA NOTICE:** All metrics and predictions reported here are evaluated exclusively on synthetic fleet operational data generated for decision-support prototyping. Ground truth health (`simulation_truth`) was strictly excluded from training and feature engineering.
 
-*Generated at:* `2026-10-03 16:41:01 UTC`  
-*Repository Branch:* `phase-4-ml-pipeline`  
-*Target Environment:* Laptop CPU, No Deep Learning  
+*Generated at:* `2026-10-04 14:30:00 UTC` (Refreshed for Phase 10 Validation)  
+*Repository Branch:* `phase-10-testing-validation`  
+*Target Environment:* Native Localhost CPU, No Deep Learning, No Containers  
 
 ---
 

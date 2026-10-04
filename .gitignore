@@ -18,6 +18,11 @@ dist/
 frontend/dist/
 .eslintcache
 *.tsbuildinfo
+test-results/
+frontend/test-results/
+playwright-report/
+frontend/playwright-report/
+
 
 # Environment & secrets
 .env
