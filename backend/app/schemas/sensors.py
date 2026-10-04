@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date as dt_date
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -81,6 +81,19 @@ class FaultEventOut(BaseModel):
     severity: str
     description: str
     source: str
+
+    class Config:
+        from_attributes = True
+
+
+class AnomalyScoreOut(BaseModel):
+    score_id: int
+    component_id: str
+    flight_id: str
+    date: dt_date | None = None
+    score: float
+    is_anomaly: bool = False
+    top_parameters: dict[str, Any] | None = None
 
     class Config:
         from_attributes = True

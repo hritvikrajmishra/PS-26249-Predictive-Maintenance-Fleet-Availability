@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { maintenanceApi } from '../api/maintenance';
+import type { WorkOrderCreateIn } from '../types/api';
 
 export const maintenanceKeys = {
   all: ['maintenance'] as const,
@@ -8,6 +9,19 @@ export const maintenanceKeys = {
   agencies: ['maintenance', 'agencies'] as const,
   tasks: (aircraftId?: string) => ['maintenance', 'tasks', aircraftId] as const,
 };
+
+export function useCreateWorkOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: WorkOrderCreateIn) => maintenanceApi.createWorkOrder(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: maintenanceKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['engine'] });
+      queryClient.invalidateQueries({ queryKey: ['availability'] });
+      queryClient.invalidateQueries({ queryKey: ['spares'] });
+    },
+  });
+}
 
 export function useWorkOrders(params?: {
   status?: string;

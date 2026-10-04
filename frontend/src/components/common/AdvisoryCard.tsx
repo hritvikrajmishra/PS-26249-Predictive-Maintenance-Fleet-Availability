@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AlertCircle, CheckCircle, Calendar, XCircle, ArrowUpRight, ShieldAlert, Cpu } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 import type { AdvisoryOut } from '../../types/api';
@@ -54,7 +54,22 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
     }
   };
 
-  const explanationDrivers = advisory.explanation?.top_drivers || [];
+  const explanationDrivers: Array<{ feature: string; impact: number }> = useMemo(() => {
+    const raw =
+      advisory.explanation?.top_shap_factors ||
+      advisory.explanation?.top_factors ||
+      advisory.explanation?.top_drivers ||
+      [];
+    return raw.map((item) => ({
+      feature: item.feature,
+      impact:
+        'shap_impact' in item && typeof item.shap_impact === 'number'
+          ? item.shap_impact
+          : 'impact' in item && typeof item.impact === 'number'
+          ? item.impact
+          : 0,
+    }));
+  }, [advisory.explanation]);
 
   return (
     <div className="bg-[#0c1220]/90 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">

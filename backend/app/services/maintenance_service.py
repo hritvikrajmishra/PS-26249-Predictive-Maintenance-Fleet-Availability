@@ -1,14 +1,18 @@
-"""Maintenance, work orders, agencies, and scheduled tasks service."""
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.fleet import Component, ComponentType
 from app.models.maintenance import Agency, MaintenanceEvent, ScheduledTask, WorkOrder
+from app.models.platform import Advisory
+from app.models.spares import Inventory
 from app.schemas.common import PaginatedResponse
 from app.schemas.maintenance import (
     AgencyOut,
     MaintenanceEventOut,
     ScheduledTaskOut,
+    WorkOrderCreateIn,
     WorkOrderOut,
 )
 
@@ -107,3 +111,89 @@ async def list_scheduled_tasks(
     stmt = stmt.order_by(ScheduledTask.task_id)
     res = await session.execute(stmt)
     return [ScheduledTaskOut.model_validate(st) for st in res.scalars().all()]
+
+
+async def create_work_order(
+    session: AsyncSession,
+    payload: WorkOrderCreateIn,
+) -> WorkOrderOut:
+    """Create a new maintenance work order, optionally linking and advancing an advisory."""
+    now = datetime.utcnow()
+    prefix = f"WO-{now.strftime('%Y%m%d')}"
+    max_res = await session.execute(
+        select(WorkOrder.wo_id)
+        .where(WorkOrder.wo_id.like(f"{prefix}-%"))
+        .order_by(WorkOrder.wo_id.desc())
+        .limit(1)
+    )
+    last_wo = max_res.scalar_one_or_none()
+    seq = 1
+    if last_wo and last_wo.startswith(f"{prefix}-"):
+        try:
+            seq = int(last_wo.split("-")[-1]) + 1
+        except ValueError:
+            seq = 1
+
+    while True:
+        candidate = f"{prefix}-{seq:04d}"
+        exists = await session.execute(select(WorkOrder.wo_id).where(WorkOrder.wo_id == candidate))
+        if not exists.scalar_one_or_none():
+            wo_id = candidate
+            break
+        seq += 1
+
+    # Verify agency exists
+    agency_res = await session.execute(select(Agency).where(Agency.agency_id == payload.agency_id))
+    agency = agency_res.scalar_one_or_none()
+    agency_id = agency.agency_id if agency else payload.agency_id
+
+    planned_start = payload.planned_start or now
+    promised_done = payload.promised_done or (planned_start + timedelta(days=2.5))
+
+    wo = WorkOrder(
+        wo_id=wo_id,
+        aircraft_id=payload.aircraft_id,
+        component_id=payload.component_id,
+        advisory_id=payload.advisory_id,
+        agency_id=agency_id,
+        opened=now,
+        planned_start=planned_start,
+        promised_done=promised_done,
+        status="open",
+        priority=payload.priority,
+        delay_reason=payload.delay_reason
+        or ("Bundled with scheduled phase inspection" if payload.bundle_inspection else None),
+    )
+    session.add(wo)
+
+    # Transition associated advisory to "scheduled"
+    if payload.advisory_id:
+        adv_res = await session.execute(
+            select(Advisory).where(Advisory.advisory_id == payload.advisory_id)
+        )
+        adv = adv_res.scalar_one_or_none()
+        if adv and adv.status in ("proposed", "accepted"):
+            adv.status = "scheduled"
+
+    # Reserve spare if component has associated part
+    if payload.component_id:
+        comp_res = await session.execute(
+            select(ComponentType.part_number)
+            .join(Component, Component.component_type_id == ComponentType.component_type_id)
+            .where(Component.component_id == payload.component_id)
+        )
+        pn = comp_res.scalar_one_or_none()
+        if pn:
+            inv_res = await session.execute(
+                select(Inventory)
+                .where(Inventory.part_number == pn)
+                .order_by(Inventory.on_hand.desc())
+                .limit(1)
+            )
+            inv = inv_res.scalar_one_or_none()
+            if inv and inv.on_hand > inv.reserved:
+                inv.reserved += 1
+
+    await session.commit()
+    await session.refresh(wo)
+    return WorkOrderOut.model_validate(wo)

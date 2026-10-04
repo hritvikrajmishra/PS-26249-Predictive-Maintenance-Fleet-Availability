@@ -218,6 +218,66 @@ export const SimulatorPage: React.FC = () => {
     setPinnedScenarios(pinnedScenarios.filter((s) => s.id !== id));
   };
 
+  const [runningTriad, setRunningTriad] = useState<boolean>(false);
+
+  const handleRunDemoTriad = async () => {
+    setRunningTriad(true);
+    setValidationError(null);
+    try {
+      const [resBaseline, resProactive, resOutage] = await Promise.all([
+        runScenarioMutation.mutateAsync({
+          type: 'schedule_maintenance',
+          params: { aircraft_id: 'AC-017', start_day: 15, duration_days: 2 },
+          horizon_days: 30,
+          runs: 100,
+          seed: 42,
+        }),
+        runScenarioMutation.mutateAsync({
+          type: 'early_vs_run_to_failure',
+          params: { aircraft_id: 'AC-017', replace_day: 3, proactive_duration_days: 1 },
+          horizon_days: 30,
+          runs: 100,
+          seed: 42,
+        }),
+        runScenarioMutation.mutateAsync({
+          type: 'spare_unavailable',
+          params: { part_number: 'HYD-114', stock_override: 0, lead_time_days: 60 },
+          horizon_days: 30,
+          runs: 100,
+          seed: 42,
+        }),
+      ]);
+
+      const toItem = (r: ScenarioRunOut, name: string): ScenarioComparisonItem => ({
+        id: r.id,
+        name,
+        type: r.type as ScenarioType,
+        params: r.params,
+        horizon_days: r.horizon_days,
+        runs: r.runs,
+        seed: r.seed,
+        baseline_p50: r.baseline.availability_p50,
+        scenario_p50: r.scenario.availability_p50,
+        avail_delta_pct: r.delta.availability_pct_points,
+        days_lost_delta: r.delta.aircraft_days_lost,
+        stockout_prob: r.scenario.stockout_probability,
+        by_cause_delta: r.by_cause || {},
+      });
+
+      setPinnedScenarios([
+        toItem(resBaseline, '1. Baseline Schedule'),
+        toItem(resProactive, '2. Proactive Replacement'),
+        toItem(resOutage, '3. Spare Outage (HYD-114)'),
+      ]);
+      setActiveResult(resProactive);
+      setActiveTab('compare');
+    } catch (err: unknown) {
+      setValidationError(err instanceof Error ? err.message : 'Failed to run Demo Triad');
+    } finally {
+      setRunningTriad(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. Header & Navigation */}
@@ -236,8 +296,23 @@ export const SimulatorPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex items-center space-x-1 bg-slate-900 border border-slate-700/80 rounded-lg p-1 text-xs font-mono">
+        {/* Action Controls & Tab Toggle */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 1-Click Standard Demo Triad Button */}
+          <button
+            onClick={handleRunDemoTriad}
+            disabled={!canSimulate || runningTriad || runScenarioMutation.isPending}
+            className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white rounded-lg font-mono text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-cyan-900/30 transition"
+            title="Run standard 3-way comparison triad: Baseline vs Proactive vs Spare Outage"
+          >
+            <Layers className="w-3.5 h-3.5 text-cyan-200" />
+            <span>
+              {runningTriad ? 'Simulating Triad (300 runs)...' : 'Run Standard Demo Triad (§10 Step 10)'}
+            </span>
+          </button>
+
+          {/* Tab Controls */}
+          <div className="flex items-center space-x-1 bg-slate-900 border border-slate-700/80 rounded-lg p-1 text-xs font-mono">
           <button
             onClick={() => setActiveTab('simulator')}
             className={`px-3 py-1.5 rounded font-semibold transition ${
@@ -271,6 +346,7 @@ export const SimulatorPage: React.FC = () => {
           </button>
         </div>
       </div>
+    </div>
 
       {/* Validation or Error Message */}
       {validationError && (

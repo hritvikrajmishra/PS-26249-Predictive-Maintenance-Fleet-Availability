@@ -22,6 +22,7 @@ export const engineApi = {
     status?: string;
     spare_status?: string;
     aircraft_id?: string;
+    as_of_date?: string;
     page?: number;
     page_size?: number;
   }) => api.get<PaginatedResponse<AdvisoryOut>>('/advisories', params),

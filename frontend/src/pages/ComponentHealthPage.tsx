@@ -17,7 +17,7 @@ import { AdvisoryCard } from '../components/common/AdvisoryCard';
 import { LoadingSkeleton } from '../components/feedback/LoadingSkeleton';
 import { useAuth } from '../hooks/useAuth';
 import { useComponentTwin } from '../hooks/useTwinQueries';
-import { useComponentSensors } from '../hooks/useSensorQueries';
+import { useComponentSensors, useComponentAnomalies } from '../hooks/useSensorQueries';
 import { usePredictions, useAdvisories } from '../hooks/useEngineQueries';
 import { useComponents } from '../hooks/useFleetQueries';
 import type { AdvisoryOut, TwinMaintenanceEvent } from '../types/api';
@@ -55,6 +55,7 @@ export const ComponentHealthPage: React.FC = () => {
   // Queries
   const { data: compTwin, isLoading: loadingTwin } = useComponentTwin(activeComponentId, asOfDate);
   const { data: sensorReadings, isLoading: loadingSensors } = useComponentSensors(activeComponentId, { limit: 500 });
+  const { data: anomaliesData } = useComponentAnomalies(activeComponentId);
   const { data: predictionsData, isLoading: loadingPredictions } = usePredictions({
     page_size: 10,
     as_of_date: asOfDate || undefined,
@@ -120,6 +121,22 @@ export const ComponentHealthPage: React.FC = () => {
       }
     });
 
+    // Add ML anomaly scores from anomaliesData
+    if (anomaliesData && anomaliesData.length > 0) {
+      anomaliesData
+        .filter((a) => a.is_anomaly || a.score >= 0.45)
+        .forEach((a) => {
+          if (a.date) {
+            anomalies.push({
+              startDate: a.date,
+              endDate: a.date,
+              label: `Anomaly ${(a.score * 100).toFixed(0)}%`,
+              color: 'rgba(244, 63, 94, 0.35)',
+            });
+          }
+        });
+    }
+
     const seriesList: Array<{
       name: string;
       data: Array<[string, number]>;
@@ -143,7 +160,7 @@ export const ComponentHealthPage: React.FC = () => {
     });
 
     return { sensorSeries: seriesList, anomalyWindows: anomalies };
-  }, [sensorReadings, selectedParam]);
+  }, [sensorReadings, selectedParam, anomaliesData]);
 
   // 2. Health Index Trajectory Series (Decay towards threshold)
   const { trajectorySeries, trajectoryForecastStart } = useMemo(() => {
@@ -213,12 +230,29 @@ export const ComponentHealthPage: React.FC = () => {
   const rulP90 = componentPrediction?.rul_p90 ?? (compTwin?.rul_p50 ? compTwin.rul_p50 + 8 : 22);
 
   const riskScore = componentPrediction?.risk_14d ?? compTwin?.risk ?? 0.15;
-  const shapDrivers = componentAdvisory?.explanation?.top_drivers || [
-    { feature: 'sensor_residual_outlet_pressure', impact: 0.38 },
-    { feature: 'fluid_temp_drift_slope', impact: 0.27 },
-    { feature: 'operating_hours_stress', impact: 0.19 },
-    { feature: 'ambient_temp_severity', impact: 0.12 },
-  ];
+  const shapDrivers = useMemo(() => {
+    const raw =
+      componentAdvisory?.explanation?.top_shap_factors ||
+      componentAdvisory?.explanation?.top_factors ||
+      componentAdvisory?.explanation?.top_drivers;
+    if (raw && raw.length > 0) {
+      return raw.map((item) => ({
+        feature: item.feature,
+        impact:
+          'shap_impact' in item && typeof item.shap_impact === 'number'
+            ? item.shap_impact
+            : 'impact' in item && typeof item.impact === 'number'
+            ? item.impact
+            : 0,
+      }));
+    }
+    return [
+      { feature: 'sensor_residual_outlet_pressure', impact: 0.38 },
+      { feature: 'fluid_temp_drift_slope', impact: 0.27 },
+      { feature: 'operating_hours_stress', impact: 0.19 },
+      { feature: 'ambient_temp_severity', impact: 0.12 },
+    ];
+  }, [componentAdvisory]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">

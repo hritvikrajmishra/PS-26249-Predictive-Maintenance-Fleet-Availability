@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setTokenState] = useState<string | null>(getStoredToken());
   const [user, setUser] = useState<UserOut | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [asOfDate, setAsOfDate] = useState<string | null>(null);
+  const [asOfDate, setAsOfDate] = useState<string | null>('2025-11-25');
 
   const fetchCurrentUser = useCallback(async () => {
     const currentToken = getStoredToken();

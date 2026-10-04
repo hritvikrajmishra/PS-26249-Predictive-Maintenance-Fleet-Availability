@@ -5,8 +5,19 @@ export const sensorKeys = {
   all: ['sensors'] as const,
   readings: (componentId: string, params?: Record<string, unknown>) =>
     [...sensorKeys.all, 'readings', componentId, params] as const,
+  anomalies: (componentId: string, params?: Record<string, unknown>) =>
+    [...sensorKeys.all, 'anomalies', componentId, params] as const,
   faults: (params?: Record<string, unknown>) => [...sensorKeys.all, 'faults', params] as const,
 };
+
+export function useComponentAnomalies(componentId?: string, params?: { limit?: number }) {
+  return useQuery({
+    queryKey: componentId ? sensorKeys.anomalies(componentId, params) : ['disabled'],
+    queryFn: () => (componentId ? sensorsApi.getComponentAnomalies(componentId, params) : Promise.reject('No ID')),
+    enabled: !!componentId,
+    staleTime: 60_000,
+  });
+}
 
 export function useComponentSensors(
   componentId?: string,

@@ -80,6 +80,9 @@ async def list_advisories(
     aircraft_id: Annotated[
         str | None, Query(description="Filter by aircraft ID or tail code")
     ] = None,
+    as_of_date: Annotated[
+        date | None, Query(description="Filter by as_of_date (YYYY-MM-DD)")
+    ] = None,
     page: Annotated[int, Query(ge=1, description="Page number")] = 1,
     page_size: Annotated[int, Query(ge=1, le=500, description="Items per page")] = 50,
 ) -> PaginatedResponse[AdvisoryOut]:
@@ -90,6 +93,7 @@ async def list_advisories(
         status=status,
         spare_status=spare_status,
         aircraft_id=aircraft_id,
+        as_of_date=as_of_date,
         page=page,
         page_size=page_size,
     )

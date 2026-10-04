@@ -59,11 +59,12 @@ export const PredictiveQueuePage: React.FC = () => {
     status: statusFilter !== 'all' ? statusFilter : undefined,
     spare_status: spareFilter !== 'all' ? spareFilter : undefined,
     aircraft_id: aircraftFilter !== 'all' ? aircraftFilter : undefined,
+    as_of_date: asOfDate || undefined,
     page: currentPage,
     page_size: pageSize,
   });
 
-  const { data: predictionsData } = usePredictions({ page_size: 200 });
+  const { data: predictionsData } = usePredictions({ page_size: 200, as_of_date: asOfDate || undefined });
   const { data: systemsData } = useSystems();
   const { data: aircraftData } = useAircraftList({ page_size: 100 });
 

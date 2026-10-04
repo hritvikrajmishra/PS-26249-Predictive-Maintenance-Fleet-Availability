@@ -8,6 +8,10 @@ import {
   ArrowRight,
   ShieldAlert,
   Filter,
+  CheckCircle2,
+  TrendingUp,
+  Clock,
+  Sparkles,
 } from 'lucide-react';
 import { KpiCard } from '../components/common/KpiCard';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -496,7 +500,68 @@ export const FleetDashboardPage: React.FC = () => {
         }}
       />
 
-      {/* 6. Lower Tables Row: Top Risk Advisories + Upcoming Work Orders */}
+      {/* 6. Before / After Impact Summary Card (§10 Step 11 Demo Conclusion) */}
+      <div className="bg-gradient-to-r from-[#0c162d]/90 via-[#0d1a38]/80 to-[#0c162d]/90 border border-blue-600/40 rounded-xl p-5 shadow-xl font-mono space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-900/50 pb-3">
+          <div className="flex items-center space-x-2 text-cyan-400">
+            <Sparkles className="w-5 h-5 text-cyan-400" />
+            <h3 className="font-bold text-sm uppercase text-white tracking-wide">
+              Integrated Maintenance & Availability Impact Summary (§10 Step 11)
+            </h3>
+          </div>
+          <span className="text-[10px] px-2.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-600/50 uppercase tracking-wider font-bold">
+            Synthetic Data Demonstration
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
+            <div className="text-slate-400 text-[11px] flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Availability Uplift</span>
+            </div>
+            <div className="text-lg font-bold text-emerald-400">+7.8% Uplift</div>
+            <p className="text-[10px] text-slate-400">
+              Fleet readiness elevated from ~74.2% (reactive baseline) to ~82.0% continuous availability.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
+            <div className="text-slate-400 text-[11px] flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Downtime Reduction</span>
+            </div>
+            <div className="text-lg font-bold text-cyan-400">-6.5 Days / Defect</div>
+            <p className="text-[10px] text-slate-400">
+              Proactive bundled bay slot requires 2.5d vs 9.0d run-to-failure unscheduled grounding.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
+            <div className="text-slate-400 text-[11px] flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+              <span>Advance Early Warning</span>
+            </div>
+            <div className="text-lg font-bold text-blue-400">19 Days Lead-Time</div>
+            <p className="text-[10px] text-slate-400">
+              Sustained telemetry anomaly flags deteriorating pump ~19 days prior to functional failure.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
+            <div className="text-slate-400 text-[11px] flex items-center gap-1">
+              <Package className="w-3.5 h-3.5 text-amber-400" />
+              <span>Supply Risk Avoidance</span>
+            </div>
+            <div className="text-lg font-bold text-amber-400">Zero Spares AOG</div>
+            <p className="text-[10px] text-slate-400">
+              Integrated logistics triggers 45-day lead-time procurement before depot stockout.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 7. Lower Tables Row: Top Risk Advisories + Upcoming Work Orders */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Advisories Table */}
         <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">

@@ -52,6 +52,18 @@ class WorkOrderOut(BaseModel):
         from_attributes = True
 
 
+class WorkOrderCreateIn(BaseModel):
+    aircraft_id: str
+    component_id: str | None = None
+    advisory_id: str | None = None
+    agency_id: str
+    priority: str = "P2"
+    planned_start: datetime | None = None
+    promised_done: datetime | None = None
+    bundle_inspection: bool = False
+    delay_reason: str | None = None
+
+
 class MaintenanceEventOut(BaseModel):
     event_id: str
     aircraft_id: str

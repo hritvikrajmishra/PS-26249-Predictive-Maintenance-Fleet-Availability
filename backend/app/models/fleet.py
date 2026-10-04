@@ -109,6 +109,8 @@ class Component(Base):
 
     __tablename__ = "components"
     __table_args__ = (
+        Index("ix_components_aircraft_id", "aircraft_id"),
+        Index("ix_components_component_type_id", "component_type_id"),
         CheckConstraint(
             "hours_at_install >= 0",
             name="ck_components_hours_at_install_non_negative",
@@ -150,6 +152,7 @@ class AircraftDailyStatus(Base):
     __table_args__ = (
         UniqueConstraint("aircraft_id", "date", name="uq_aircraft_daily_status_aircraft_date"),
         Index("ix_aircraft_daily_status_aircraft_date", "aircraft_id", "date"),
+        Index("ix_aircraft_daily_status_date", "date"),
         CheckConstraint(
             "status IN ('Available', 'Scheduled Maintenance', 'Unscheduled Repair', 'Awaiting Spares', 'Awaiting Workshop')",
             name="ck_aircraft_daily_status_enum",

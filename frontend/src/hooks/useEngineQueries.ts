@@ -30,6 +30,7 @@ export function useAdvisories(params?: {
   status?: string;
   spare_status?: string;
   aircraft_id?: string;
+  as_of_date?: string;
   page?: number;
   page_size?: number;
 }) {

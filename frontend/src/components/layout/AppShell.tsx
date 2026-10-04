@@ -11,18 +11,18 @@ import {
   LogOut,
   Bell,
   CheckCircle2,
-  Calendar,
   X,
   Menu,
 } from 'lucide-react';
 import { SyntheticNotice } from './SyntheticNotice';
+import { TimeReplayControl } from '../common/TimeReplayControl';
 import { useAuth } from '../../hooks/useAuth';
 import { useAlerts, useAckAlert } from '../../hooks/useEngineQueries';
 import { useFleetSummary } from '../../hooks/useAvailabilityQueries';
 import type { UserRole } from '../../types/api';
 
 export const AppShell: React.FC = () => {
-  const { user, role, logout, switchDemoRole, asOfDate, setAsOfDate } = useAuth();
+  const { user, role, logout, switchDemoRole, asOfDate } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
@@ -91,29 +91,9 @@ export const AppShell: React.FC = () => {
           </div>
         </div>
 
-        {/* Global Controls: As-Of Date & Alert Bell & User Profile */}
-        <div className="flex items-center space-x-3 text-xs font-mono">
-          {/* As-Of Replay Date Selector */}
-          <div className="flex items-center space-x-1.5 bg-slate-900/80 border border-slate-700/80 rounded-lg px-2.5 py-1">
-            <Calendar className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-slate-400 text-[11px] hidden sm:inline">Cutoff:</span>
-            <input
-              type="date"
-              value={asOfDate || ''}
-              onChange={(e) => setAsOfDate(e.target.value || null)}
-              className="bg-transparent text-slate-200 text-xs font-mono focus:outline-none w-28 cursor-pointer"
-              title="Time-replay cutoff date across all screens"
-            />
-            {asOfDate && (
-              <button
-                onClick={() => setAsOfDate(null)}
-                className="text-slate-400 hover:text-white text-[10px] pl-1 font-bold"
-                title="Reset to live date"
-              >
-                ✕
-              </button>
-            )}
-          </div>
+        {/* Global Controls: As-Of Time-Replay Bar & Alert Bell & User Profile */}
+        <div className="flex items-center space-x-2 sm:space-x-3 text-xs font-mono">
+          <TimeReplayControl />
 
           {/* Active Alerts Bell */}
           <div className="relative">

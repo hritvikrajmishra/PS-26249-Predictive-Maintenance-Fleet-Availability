@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import copy
 import uuid
+from datetime import date
 from typing import Any
 
 from sqlalchemy import select
@@ -39,6 +40,7 @@ async def build_simulation_config_from_db(
     horizon_days: int = 30,
     runs: int = 300,
     seed: int = 42,
+    as_of: date | None = None,
 ) -> SimulationConfig:
     """Build a simulation configuration initialized from current database state if available."""
     if session is None:
@@ -57,11 +59,12 @@ async def build_simulation_config_from_db(
         )
 
     # 2. Latest predictions for failure risk
-    pred_stmt = (
-        select(Component.aircraft_id, Prediction.risk_14d)
-        .join(Component, Component.component_id == Prediction.component_id)
-        .order_by(Prediction.as_of_date.desc(), Prediction.created_at.desc())
+    pred_stmt = select(Component.aircraft_id, Prediction.risk_14d).join(
+        Component, Component.component_id == Prediction.component_id
     )
+    if as_of is not None:
+        pred_stmt = pred_stmt.where(Prediction.as_of_date <= as_of)
+    pred_stmt = pred_stmt.order_by(Prediction.as_of_date.desc(), Prediction.created_at.desc())
     pred_res = await session.execute(pred_stmt)
     pred_by_ac: dict[str, float] = {}
     for ac_id, risk_14d in pred_res.all():

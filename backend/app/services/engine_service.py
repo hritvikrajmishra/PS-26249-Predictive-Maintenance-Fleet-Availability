@@ -106,6 +106,7 @@ async def list_advisories(
     status: str | None = None,
     spare_status: str | None = None,
     aircraft_id: str | None = None,
+    as_of_date: date | None = None,
     page: int = 1,
     page_size: int = 50,
 ) -> PaginatedResponse[AdvisoryOut]:
@@ -134,6 +135,8 @@ async def list_advisories(
         query = query.where(
             (Component.aircraft_id == aircraft_id) | (Aircraft.tail_code == aircraft_id)
         )
+    if as_of_date is not None:
+        query = query.where(Advisory.as_of_date == as_of_date)
 
     count_stmt = select(func.count()).select_from(query.subquery())
     total_res = await session.execute(count_stmt)
