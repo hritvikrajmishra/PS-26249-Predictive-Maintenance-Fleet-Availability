@@ -1,8 +1,9 @@
-#!/usr/bin/env python3
 """Cross-platform task runner for Integrated Predictive Maintenance & Fleet Availability Platform.
 
 Supported commands:
+    demo     One-command reproducible local demo (migrate, seed 42, train, engine, build, serve at :8000).
     dev      Start backend (uvicorn) and frontend (Vite) concurrently with graceful shutdown.
+    build    Build frontend production bundle into frontend/dist.
     test     Run backend pytest suite and frontend vitest suite.
     lint     Run backend ruff checks/formatting and frontend eslint.
     seed     Generate synthetic fleet data and populate PostgreSQL database (Phase 2).
@@ -10,7 +11,9 @@ Supported commands:
     engine   Run predictive maintenance scoring engine to generate advisories and alerts (Phase 5).
 
 Usage:
+    python scripts/tasks.py demo
     python scripts/tasks.py dev
+    python scripts/tasks.py build
     python scripts/tasks.py test
     python scripts/tasks.py lint
     python scripts/tasks.py migrate
@@ -301,6 +304,147 @@ def run_engine(args: list[str] | None = None) -> int:
     return 0
 
 
+def run_build_frontend() -> int:
+    """Build the frontend production assets into frontend/dist."""
+    print("=" * 60)
+    print("Building Frontend Production Bundle (Vite)")
+    print("=" * 60)
+    npm_cmd = get_npm_cmd()
+    res = subprocess.run([npm_cmd, "run", "build"], cwd=str(FRONTEND_DIR))
+    if res.returncode != 0:
+        print(f"\n[FAILED] Frontend production build failed with exit code {res.returncode}")
+        return res.returncode
+    print("\n[SUCCESS] Frontend production build completed (frontend/dist ready).")
+    return 0
+
+
+def run_demo(args: list[str] | None = None) -> int:
+    """One-command reproducible local demo (Phase 11).
+
+    Executes:
+      1. Database migrations (migrate)
+      2. Seed synthetic fleet data (seed --seed 42)
+      3. Train ML models (train --all)
+      4. Run predictive maintenance scoring engine (engine)
+      5. Build frontend production assets (build)
+      6. Start backend serving frontend/dist at http://localhost:8000
+    """
+    args = args or []
+    skip_migrate = "--skip-migrate" in args
+    skip_seed = "--skip-seed" in args
+    skip_train = "--skip-train" in args
+    skip_engine = "--skip-engine" in args
+    skip_build = "--skip-build" in args
+
+    port = "8000"
+    if "--port" in args:
+        idx = args.index("--port")
+        if idx + 1 < len(args):
+            port = args[idx + 1]
+
+    print("=" * 70)
+    print("Starting One-Command Reproducible Local Demo (Phase 11)")
+    print("Integrated Predictive Maintenance & Fleet Availability Platform")
+    print("=" * 70)
+
+    # 1. Run migrations
+    if not skip_migrate:
+        print("\n--- [Step 1/5] Applying Database Migrations (Alembic) ---")
+        rc = run_migrate()
+        if rc != 0:
+            return rc
+    else:
+        print("\n--- [Step 1/5] Database migrations skipped (--skip-migrate) ---")
+
+    # 2. Seed synthetic data (seed 42)
+    if not skip_seed:
+        print("\n--- [Step 2/5] Seeding Synthetic Fleet Data (seed 42) ---")
+        rc = run_seed(["--seed", "42"])
+        if rc != 0:
+            return rc
+    else:
+        print("\n--- [Step 2/5] Data seeding skipped (--skip-seed) ---")
+
+    # 3. Train ML pipeline
+    if not skip_train:
+        print("\n--- [Step 3/5] Training ML Pipeline Models ---")
+        rc = run_train(["--all"])
+        if rc != 0:
+            return rc
+    else:
+        print("\n--- [Step 3/5] ML training skipped (--skip-train) ---")
+
+    # 4. Run scoring engine
+    if not skip_engine:
+        print("\n--- [Step 4/5] Running Predictive Maintenance Scoring Engine ---")
+        rc = run_engine([])
+        if rc != 0:
+            return rc
+    else:
+        print("\n--- [Step 4/5] Engine execution skipped (--skip-engine) ---")
+
+    # 5. Build frontend production assets
+    if not skip_build:
+        print("\n--- [Step 5/5] Building Frontend Production Bundle ---")
+        rc = run_build_frontend()
+        if rc != 0:
+            return rc
+    else:
+        print("\n--- [Step 5/5] Frontend build skipped (--skip-build) ---")
+
+    # 6. Start the unified demo server
+    print("\n" + "=" * 70)
+    print(f"AeroPulse Platform Demo Live: http://localhost:{port}")
+    print("=" * 70)
+    print(f"  • Web Cockpit: http://localhost:{port}")
+    print(f"  • API Docs:    http://localhost:{port}/docs")
+    print(f"  • Health:      http://localhost:{port}/api/v1/health")
+    print("  • Demo Script: docs/demo-script.md (11-step walkthrough)")
+    print("  • Quick Login: Click 'Planner' on login page or use demo credentials")
+    print("\nPress Ctrl+C to terminate the demo server.\n")
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = (
+        str(BACKEND_DIR) + os.pathsep + str(ROOT_DIR) + os.pathsep + env.get("PYTHONPATH", "")
+    )
+
+    server_args = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        port,
+    ]
+
+    proc = None
+    try:
+        proc = subprocess.Popen(server_args, cwd=str(BACKEND_DIR), env=env)
+        proc.wait()
+    except KeyboardInterrupt:
+        print("\n[Shutdown] Ctrl+C received. Gracefully stopping demo server...")
+    finally:
+        if proc and proc.poll() is None:
+            try:
+                if sys.platform == "win32":
+                    subprocess.run(
+                        ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        check=False,
+                    )
+                else:
+                    proc.send_signal(signal.SIGTERM)
+                proc.wait(timeout=5)
+            except Exception:
+                proc.kill()
+        print("[Shutdown] Demo server stopped successfully.")
+
+    return 0
+
+
 def print_help() -> None:
     print(__doc__)
 
@@ -312,8 +456,12 @@ def main() -> int:
 
     cmd = sys.argv[1].lower()
     extra_args = sys.argv[2:]
-    if cmd == "dev":
+    if cmd == "demo":
+        return run_demo(extra_args)
+    elif cmd == "dev":
         return run_dev()
+    elif cmd == "build":
+        return run_build_frontend()
     elif cmd == "test":
         return run_test(extra_args)
     elif cmd == "lint":
@@ -331,7 +479,7 @@ def main() -> int:
         return 0
     else:
         print(
-            f"Unknown command: '{cmd}'. Supported commands: dev, test, lint, migrate, seed, train, engine"
+            f"Unknown command: '{cmd}'. Supported commands: demo, dev, build, test, lint, migrate, seed, train, engine"
         )
         return 1
 

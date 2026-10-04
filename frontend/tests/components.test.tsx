@@ -24,7 +24,9 @@ const mockAdvisory: AdvisoryOut = {
   status: 'proposed',
   spare_status: 'available',
   expected_downtime_days: 2.5,
-  confidence_note: 'model confidence moderate',
+  tail_code: 'AC-017',
+  system_name: 'Hydraulics',
+  dismiss_reason: null,
   created_at: '2025-11-25T10:00:00Z',
   explanation: {
     text: 'Hydraulic main pump outlet pressure oscillation and fluid temperature drift.',
@@ -82,8 +84,8 @@ describe('Component Library Tests', () => {
 
   it('renders SvgSchematic aircraft diagram highlighting degraded systems', () => {
     const systems = [
-      { id: 'SYS-HYD', name: 'Hydraulics', state: 'Degraded', healthIndex: 41 },
-      { id: 'SYS-PROP', name: 'Propulsion', state: 'Healthy', healthIndex: 92 },
+      { name: 'Hydraulics', status: 'degraded', healthIndex: 41 },
+      { name: 'Propulsion', status: 'healthy', healthIndex: 92 },
     ];
 
     const onSelectSystem = vi.fn();
