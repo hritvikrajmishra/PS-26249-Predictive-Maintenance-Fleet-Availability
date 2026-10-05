@@ -12,12 +12,15 @@ import {
   TrendingUp,
   Clock,
   Sparkles,
+  Layers,
+  Wrench,
 } from 'lucide-react';
 import { KpiCard } from '../components/common/KpiCard';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { TimeSeriesChart } from '../components/common/TimeSeriesChart';
 import { Heatgrid, type HeatgridCell } from '../components/common/Heatgrid';
+import { SectionContainer } from '../components/common/SectionContainer';
 import { useAuth } from '../hooks/useAuth';
 import { useKpis, useFleetSummary, useAvailabilityTrend } from '../hooks/useAvailabilityQueries';
 import { useFleetTwin } from '../hooks/useTwinQueries';
@@ -77,9 +80,9 @@ export const FleetDashboardPage: React.FC = () => {
       dashed?: boolean;
     }> = [
       {
-        name: 'Availability (Median)',
+        name: 'Availability (Median Ao)',
         data: actualOrP50,
-        color: '#38bdf8',
+        color: '#0D6553',
         area: true,
       },
     ];
@@ -88,7 +91,7 @@ export const FleetDashboardPage: React.FC = () => {
       series.push({
         name: 'P90 (Optimistic)',
         data: p90Data,
-        color: '#10b981',
+        color: '#10B981',
         area: false,
         dashed: true,
       });
@@ -98,7 +101,7 @@ export const FleetDashboardPage: React.FC = () => {
       series.push({
         name: 'P10 (Stress Lower)',
         data: p10Data,
-        color: '#f43f5e',
+        color: '#EF4444',
         area: false,
         dashed: true,
       });
@@ -123,13 +126,11 @@ export const FleetDashboardPage: React.FC = () => {
     ];
 
     fleetTwin.aircraft.forEach((ac) => {
-      // Filter by system if specified
       systemsList.forEach((sys) => {
         if (selectedSystem !== 'all' && !sys.name.toLowerCase().includes(selectedSystem.toLowerCase())) {
           return;
         }
 
-        // Check if driver component belongs to this system
         const isDriverSystem = ac.driver_component?.system_name.toLowerCase().includes(sys.name.toLowerCase());
         const healthIndex = isDriverSystem && ac.driver_component ? ac.driver_component.health_index : ac.health_index;
         const status = isDriverSystem && ac.driver_component ? ac.driver_component.state : ac.state;
@@ -159,7 +160,7 @@ export const FleetDashboardPage: React.FC = () => {
     {
       header: 'Airframe',
       render: (row) => (
-        <span className="font-semibold text-slate-200 hover:text-blue-400 cursor-pointer">
+        <span className="font-mono font-bold text-[#3B1D5E] hover:text-[#0D6553] cursor-pointer">
           {row.tail_code || row.aircraft_id}
         </span>
       ),
@@ -168,16 +169,16 @@ export const FleetDashboardPage: React.FC = () => {
       header: 'System / Component',
       render: (row) => (
         <div>
-          <div className="text-slate-200 font-semibold">{row.component_name || row.component_id}</div>
-          <div className="text-[10px] text-slate-400">{row.system_name || 'System'}</div>
+          <div className="text-[#3B1D5E] font-semibold">{row.component_name || row.component_id}</div>
+          <div className="text-[11px] text-[#8F7FA8]">{row.system_name || 'System'}</div>
         </div>
       ),
     },
     {
       header: 'Recommended Action',
       render: (row) => (
-        <span className="text-amber-300 font-semibold flex items-center gap-1">
-          <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
+        <span className="text-[#3B1D5E] font-medium flex items-center gap-1.5">
+          <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0 text-[#D97706]" />
           {row.action}
         </span>
       ),
@@ -191,7 +192,7 @@ export const FleetDashboardPage: React.FC = () => {
       header: 'Loss (Days)',
       align: 'right',
       render: (row) => (
-        <span className="text-slate-300">
+        <span className="text-[#6B5B84] font-mono font-bold">
           {row.expected_downtime_days ? `${row.expected_downtime_days}d` : '—'}
         </span>
       ),
@@ -205,7 +206,7 @@ export const FleetDashboardPage: React.FC = () => {
             e.stopPropagation();
             navigate(`/components/${row.component_id}`);
           }}
-          className="p-1 px-2 text-[10px] bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded border border-blue-500/40 transition"
+          className="p-1 px-2.5 text-[11px] bg-[#E0F8FA] hover:bg-[#1DE9C0] text-[#0D6553] hover:text-[#1E1035] font-semibold rounded-[8px] border border-[#1DE9C0]/40 transition shadow-sm"
         >
           View Evidence
         </button>
@@ -217,15 +218,15 @@ export const FleetDashboardPage: React.FC = () => {
   const workOrderColumns: Column<WorkOrderOut>[] = [
     {
       header: 'WO ID',
-      render: (row) => <span className="text-slate-400 font-mono">{row.wo_id}</span>,
+      render: (row) => <span className="text-[#6B5B84] font-mono">{row.wo_id}</span>,
     },
     {
       header: 'Airframe',
-      render: (row) => <span className="text-white font-semibold">{row.aircraft_id}</span>,
+      render: (row) => <span className="text-[#3B1D5E] font-mono font-bold">{row.aircraft_id}</span>,
     },
     {
       header: 'Agency / Bay',
-      render: (row) => <span className="text-slate-300">{row.agency_id}</span>,
+      render: (row) => <span className="text-[#6B5B84]">{row.agency_id}</span>,
     },
     {
       header: 'Priority',
@@ -240,7 +241,7 @@ export const FleetDashboardPage: React.FC = () => {
     {
       header: 'Delay Reason',
       render: (row) => (
-        <span className="text-rose-400 text-[11px] truncate max-w-[140px] block">
+        <span className="text-[#DC2626] text-[11px] truncate max-w-[140px] block">
           {row.delay_reason || 'Nominal execution'}
         </span>
       ),
@@ -254,15 +255,15 @@ export const FleetDashboardPage: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. Alerts Banner Strip */}
       {alertsData && alertsData.items.length > 0 && (
-        <div className="bg-rose-950/40 border border-rose-600/50 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono text-rose-200">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-rose-400 animate-pulse flex-shrink-0" />
-            <span className="font-semibold uppercase text-rose-300">Operational Alert:</span>
-            <span className="truncate max-w-2xl">{alertsData.items[0].message}</span>
+        <div className="bg-[#FEF2F2] border border-[#FCA5A5] rounded-[16px] p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#991B1B] shadow-sm">
+          <div className="flex items-center space-x-2.5">
+            <AlertTriangle className="w-4 h-4 text-[#DC2626] animate-pulse flex-shrink-0" />
+            <span className="font-bold uppercase text-[#B91C1C]">Operational Alert:</span>
+            <span className="truncate max-w-2xl text-[#7F1D1D] font-medium">{alertsData.items[0].message}</span>
           </div>
           <button
             onClick={() => navigate('/advisories')}
-            className="text-[11px] text-rose-300 hover:text-white underline flex items-center gap-1 font-semibold flex-shrink-0"
+            className="text-[11px] text-[#B91C1C] hover:text-[#7F1D1D] underline flex items-center gap-1 font-bold flex-shrink-0"
           >
             Review Queue ({alertsData.total}) <ArrowRight className="w-3 h-3" />
           </button>
@@ -270,53 +271,53 @@ export const FleetDashboardPage: React.FC = () => {
       )}
 
       {/* 2. Top Header & Filters */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E2F0] pb-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold font-mono text-white tracking-tight flex items-center gap-2">
-            <Activity className="w-6 h-6 text-blue-400" />
+          <h1 className="text-xl md:text-2xl font-bold text-[#3B1D5E] tracking-tight flex items-center gap-2">
+            <Activity className="w-6 h-6 text-[#0D6553]" />
             Fleet Operational Cockpit
           </h1>
-          <p className="text-xs text-slate-400 font-mono mt-0.5">
+          <p className="text-xs text-[#6B5B84] mt-0.5">
             Integrated fleet availability, degradation signals, and turnaround bottlenecks
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono">
-          <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-400">System:</span>
+        <div className="flex flex-wrap items-center gap-2.5 text-xs">
+          <div className="flex items-center space-x-1.5 bg-white border border-[#E6E2F0] rounded-[10px] px-3 py-1.5 shadow-sm">
+            <Filter className="w-3.5 h-3.5 text-[#0D6553]" />
+            <span className="text-[#6B5B84]">System:</span>
             <select
               value={selectedSystem}
               onChange={(e) => setSelectedSystem(e.target.value)}
-              className="bg-transparent text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-[#3B1D5E] font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="all" className="bg-slate-900 text-slate-200">All Systems</option>
+              <option value="all">All Systems</option>
               {systemsData?.map((s) => (
-                <option key={s.system_id} value={s.name} className="bg-slate-900 text-slate-200">
+                <option key={s.system_id} value={s.name}>
                   {s.name}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1">
-            <Plane className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-400">Base:</span>
+          <div className="flex items-center space-x-1.5 bg-white border border-[#E6E2F0] rounded-[10px] px-3 py-1.5 shadow-sm">
+            <Plane className="w-3.5 h-3.5 text-[#0D6553]" />
+            <span className="text-[#6B5B84]">Base:</span>
             <select
               value={selectedBase}
               onChange={(e) => setSelectedBase(e.target.value)}
-              className="bg-transparent text-slate-200 focus:outline-none cursor-pointer"
+              className="bg-transparent text-[#3B1D5E] font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="all" className="bg-slate-900 text-slate-200">All Squadrons</option>
-              <option value="Base-North" className="bg-slate-900 text-slate-200">Base-North (Forward)</option>
-              <option value="Base-South" className="bg-slate-900 text-slate-200">Base-South (Main)</option>
+              <option value="all">All Squadrons</option>
+              <option value="Base-North">Base-North (Forward)</option>
+              <option value="Base-South">Base-South (Main)</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* 3. Primary KPI Cards Grid */}
+      {/* 3. LEVEL 1: Primary KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title="Fleet Availability (Ao)"
@@ -328,7 +329,7 @@ export const FleetDashboardPage: React.FC = () => {
             label: 'Forecast Trend',
           }}
           icon={<Activity className="w-5 h-5" />}
-          accent="blue"
+          accent="honey"
           loading={loadingSummary && loadingKpis}
           onClick={() => navigate('/scenarios')}
         />
@@ -353,7 +354,7 @@ export const FleetDashboardPage: React.FC = () => {
           value={`${(summary?.open_p1 || 0) + (summary?.open_p2 || 0)}`}
           subtitle={`${summary?.open_p1 || 0} Critical P1 • ${summary?.open_p2 || 0} High P2`}
           change={{
-            value: 'Requires Planner Action',
+            value: 'Action Required',
             isPositive: false,
           }}
           icon={<AlertTriangle className="w-5 h-5" />}
@@ -378,21 +379,22 @@ export const FleetDashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* 4. Charts Row: Availability Trend + Downtime by Cause */}
+      {/* 4. LEVEL 2: Charts Row: Availability Trend + Downtime by Cause */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Availability Trend Line Chart (2 Cols) */}
-        <div className="lg:col-span-2 bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
+        <div className="lg:col-span-2 bg-white border border-[#E6E2F0] rounded-[20px] p-5 sm:p-6 shadow-ap-card flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-3 border-b border-[#E6E2F0]">
             <div>
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#3B1D5E] flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#0D6553]" />
                 Fleet Availability Timeline & 30-Day Forward Projection
               </h3>
-              <p className="text-[11px] text-slate-400 font-mono">
-                Historical observed availability with P10/P50/P90 Monte Carlo forward projection band
+              <p className="text-xs text-[#6B5B84] mt-0.5">
+                Historical observed availability with P10/P50/P90 forward projection band
               </p>
             </div>
             {forecastStart && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950/60 border border-blue-500/40 text-blue-300">
+              <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#E0F8FA] border border-[#1DE9C0]/50 text-[#0D6553] font-semibold">
                 Forecast from: {forecastStart}
               </span>
             )}
@@ -410,71 +412,74 @@ export const FleetDashboardPage: React.FC = () => {
         </div>
 
         {/* Downtime by Cause Stacked / Breakdown (1 Col) */}
-        <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+        <div className="bg-white border border-[#E6E2F0] rounded-[20px] p-5 sm:p-6 shadow-ap-card flex flex-col justify-between">
           <div>
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200 mb-1">
-              Downtime Loss Breakdown
-            </h3>
-            <p className="text-[11px] text-slate-400 font-mono mb-4">
+            <div className="flex items-center justify-between mb-3 pb-3 border-b border-[#E6E2F0]">
+              <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#3B1D5E] flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-[#0D6553]" />
+                Downtime Loss Breakdown
+              </h3>
+            </div>
+            <p className="text-xs text-[#6B5B84] mb-4">
               Cumulative aircraft-days lost by operational root cause
             </p>
 
-            <div className="space-y-3 font-mono text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <div className="flex justify-between text-slate-300 mb-1">
+                <div className="flex justify-between text-[#6B5B84] mb-1">
                   <span>Scheduled Inspections</span>
-                  <span className="font-semibold text-blue-400">
+                  <span className="font-mono font-bold text-[#3B1D5E]">
                     {downtime ? `${downtime.scheduled_days}d (${downtime.scheduled_pct.toFixed(0)}%)` : '—'}
                   </span>
                 </div>
-                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#F4F2FB] h-2 rounded-full overflow-hidden border border-[#E6E2F0]">
                   <div
-                    className="bg-blue-500 h-full rounded-full"
+                    className="bg-[#1DE9C0] h-full rounded-full"
                     style={{ width: `${downtime?.scheduled_pct || 40}%` }}
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-slate-300 mb-1">
+                <div className="flex justify-between text-[#6B5B84] mb-1">
                   <span>Unscheduled Repairs</span>
-                  <span className="font-semibold text-amber-400">
+                  <span className="font-mono font-bold text-[#D97706]">
                     {downtime ? `${downtime.unscheduled_days}d (${downtime.unscheduled_pct.toFixed(0)}%)` : '—'}
                   </span>
                 </div>
-                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#F4F2FB] h-2 rounded-full overflow-hidden border border-[#E6E2F0]">
                   <div
-                    className="bg-amber-500 h-full rounded-full"
+                    className="bg-[#F59E0B] h-full rounded-full"
                     style={{ width: `${downtime?.unscheduled_pct || 25}%` }}
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-slate-300 mb-1">
-                  <span>Supply Wait (Parts Stockout)</span>
-                  <span className="font-semibold text-rose-400">
+                <div className="flex justify-between text-[#6B5B84] mb-1">
+                  <span>Supply Wait (Stockout)</span>
+                  <span className="font-mono font-bold text-[#DC2626]">
                     {downtime ? `${downtime.supply_wait_days}d (${downtime.supply_wait_pct.toFixed(0)}%)` : '—'}
                   </span>
                 </div>
-                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#F4F2FB] h-2 rounded-full overflow-hidden border border-[#E6E2F0]">
                   <div
-                    className="bg-rose-500 h-full rounded-full"
+                    className="bg-[#EF4444] h-full rounded-full"
                     style={{ width: `${downtime?.supply_wait_pct || 20}%` }}
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between text-slate-300 mb-1">
-                  <span>Workshop / Agency Bay Queue</span>
-                  <span className="font-semibold text-cyan-400">
+                <div className="flex justify-between text-[#6B5B84] mb-1">
+                  <span>Workshop / Bay Queue</span>
+                  <span className="font-mono font-bold text-[#2563EB]">
                     {downtime ? `${downtime.agency_wait_days}d (${downtime.agency_wait_pct.toFixed(0)}%)` : '—'}
                   </span>
                 </div>
-                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#F4F2FB] h-2 rounded-full overflow-hidden border border-[#E6E2F0]">
                   <div
-                    className="bg-cyan-500 h-full rounded-full"
+                    className="bg-[#3B82F6] h-full rounded-full"
                     style={{ width: `${downtime?.agency_wait_pct || 15}%` }}
                   />
                 </div>
@@ -482,16 +487,16 @@ export const FleetDashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <div className="mt-4 pt-3 border-t border-[#E6E2F0] flex items-center justify-between text-xs text-[#6B5B84]">
             <span>Total Lost Days:</span>
-            <span className="font-bold text-white text-sm">
+            <span className="font-mono font-bold text-[#3B1D5E] text-sm">
               {downtime ? `${downtime.total_downtime_days} Days` : '—'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* 5. Aircraft × System Health Heat-Grid */}
+      {/* 5. LEVEL 3: Aircraft × System Health Heat-Grid */}
       <Heatgrid
         cells={heatgridCells}
         loading={loadingTwin}
@@ -500,82 +505,81 @@ export const FleetDashboardPage: React.FC = () => {
         }}
       />
 
-      {/* 6. Before / After Impact Summary Card (§10 Step 11 Demo Conclusion) */}
-      <div className="bg-gradient-to-r from-[#0c162d]/90 via-[#0d1a38]/80 to-[#0c162d]/90 border border-blue-600/40 rounded-xl p-5 shadow-xl font-mono space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-blue-900/50 pb-3">
-          <div className="flex items-center space-x-2 text-cyan-400">
-            <Sparkles className="w-5 h-5 text-cyan-400" />
-            <h3 className="font-bold text-sm uppercase text-white tracking-wide">
-              Integrated Maintenance & Availability Impact Summary (§10 Step 11)
-            </h3>
-          </div>
-          <span className="text-[10px] px-2.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-600/50 uppercase tracking-wider font-bold">
-            Synthetic Data Demonstration
+      {/* 6. LEVEL 4: Before / After Impact Summary Card */}
+      <SectionContainer
+        title="Integrated Maintenance & Availability Outcomes"
+        subtitle="Demonstrating quantified outcomes: availability uplift, downtime reduction, and zero AOG spares"
+        icon={<Sparkles className="w-5 h-5 text-[#0D6553]" />}
+        badge={
+          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#E0F8FA] text-[#0369A1] border border-[#BAE6FD] uppercase font-bold">
+            Fleet Benchmark
           </span>
-        </div>
-
+        }
+      >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
-            <div className="text-slate-400 text-[11px] flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="bg-[#F4F2FB] border border-[#E6E2F0] rounded-[16px] p-4 space-y-1.5 shadow-sm">
+            <div className="text-[#6B5B84] text-[11px] flex items-center gap-1.5 font-medium">
+              <TrendingUp className="w-4 h-4 text-[#059669]" />
               <span>Availability Uplift</span>
             </div>
-            <div className="text-lg font-bold text-emerald-400">+7.8% Uplift</div>
-            <p className="text-[10px] text-slate-400">
+            <div className="text-xl font-bold font-mono text-[#059669]">+7.8% Uplift</div>
+            <p className="text-[11px] text-[#6B5B84] leading-relaxed">
               Fleet readiness elevated from ~74.2% (reactive baseline) to ~82.0% continuous availability.
             </p>
           </div>
 
-          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
-            <div className="text-slate-400 text-[11px] flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="bg-[#F4F2FB] border border-[#E6E2F0] rounded-[16px] p-4 space-y-1.5 shadow-sm">
+            <div className="text-[#6B5B84] text-[11px] flex items-center gap-1.5 font-medium">
+              <Clock className="w-4 h-4 text-[#D97706]" />
               <span>Downtime Reduction</span>
             </div>
-            <div className="text-lg font-bold text-cyan-400">-6.5 Days / Defect</div>
-            <p className="text-[10px] text-slate-400">
+            <div className="text-xl font-bold font-mono text-[#D97706]">-6.5 Days / Defect</div>
+            <p className="text-[11px] text-[#6B5B84] leading-relaxed">
               Proactive bundled bay slot requires 2.5d vs 9.0d run-to-failure unscheduled grounding.
             </p>
           </div>
 
-          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
-            <div className="text-slate-400 text-[11px] flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+          <div className="bg-[#F4F2FB] border border-[#E6E2F0] rounded-[16px] p-4 space-y-1.5 shadow-sm">
+            <div className="text-[#6B5B84] text-[11px] flex items-center gap-1.5 font-medium">
+              <CheckCircle2 className="w-4 h-4 text-[#2563EB]" />
               <span>Advance Early Warning</span>
             </div>
-            <div className="text-lg font-bold text-blue-400">19 Days Lead-Time</div>
-            <p className="text-[10px] text-slate-400">
+            <div className="text-xl font-bold font-mono text-[#2563EB]">19 Days Lead-Time</div>
+            <p className="text-[11px] text-[#6B5B84] leading-relaxed">
               Sustained telemetry anomaly flags deteriorating pump ~19 days prior to functional failure.
             </p>
           </div>
 
-          <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-1">
-            <div className="text-slate-400 text-[11px] flex items-center gap-1">
-              <Package className="w-3.5 h-3.5 text-amber-400" />
+          <div className="bg-[#F4F2FB] border border-[#E6E2F0] rounded-[16px] p-4 space-y-1.5 shadow-sm">
+            <div className="text-[#6B5B84] text-[11px] flex items-center gap-1.5 font-medium">
+              <Package className="w-4 h-4 text-[#0D6553]" />
               <span>Supply Risk Avoidance</span>
             </div>
-            <div className="text-lg font-bold text-amber-400">Zero Spares AOG</div>
-            <p className="text-[10px] text-slate-400">
+            <div className="text-xl font-bold font-mono text-[#0D6553]">Zero Spares AOG</div>
+            <p className="text-[11px] text-[#6B5B84] leading-relaxed">
               Integrated logistics triggers 45-day lead-time procurement before depot stockout.
             </p>
           </div>
         </div>
-      </div>
+      </SectionContainer>
 
-      {/* 7. Lower Tables Row: Top Risk Advisories + Upcoming Work Orders */}
+      {/* 7. LEVEL 5: Lower Tables Row: Top Risk Advisories + Upcoming Work Orders */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Advisories Table */}
-        <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
-              Top Priority Maintenance Advisories
-            </h3>
+        <SectionContainer
+          title="Top Priority Maintenance Advisories"
+          subtitle="Proposed predictive alerts awaiting engineering disposition"
+          icon={<ShieldAlert className="w-4 h-4 text-[#0D6553]" />}
+          actions={
             <button
               onClick={() => navigate('/advisories')}
-              className="text-[11px] font-mono text-blue-400 hover:underline flex items-center gap-1"
+              className="text-xs text-[#0D6553] hover:underline font-bold flex items-center gap-1"
             >
-              Full Queue <ArrowRight className="w-3 h-3" />
+              <span>Full Queue</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
-          </div>
+          }
+        >
           <DataTable
             columns={advisoryColumns}
             data={topAdvisories?.items || []}
@@ -584,21 +588,23 @@ export const FleetDashboardPage: React.FC = () => {
             emptyMessage="All airframe subsystems are operating within nominal thresholds."
             onRowClick={(row) => navigate(`/components/${row.component_id}`)}
           />
-        </div>
+        </SectionContainer>
 
         {/* Upcoming Work Orders */}
-        <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
-              Active & Upcoming Work Orders
-            </h3>
+        <SectionContainer
+          title="Active & Upcoming Work Orders"
+          subtitle="Scheduled bay operations and workshop maintenance backlog"
+          icon={<Wrench className="w-4 h-4 text-[#0D6553]" />}
+          actions={
             <button
               onClick={() => navigate('/planning')}
-              className="text-[11px] font-mono text-blue-400 hover:underline flex items-center gap-1"
+              className="text-xs text-[#0D6553] hover:underline font-bold flex items-center gap-1"
             >
-              Planning Board <ArrowRight className="w-3 h-3" />
+              <span>Planning Board</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
-          </div>
+          }
+        >
           <DataTable
             columns={workOrderColumns}
             data={upcomingOrders?.items || []}
@@ -607,7 +613,7 @@ export const FleetDashboardPage: React.FC = () => {
             emptyMessage="No open work orders currently scheduled in maintenance bays."
             onRowClick={() => navigate('/planning')}
           />
-        </div>
+        </SectionContainer>
       </div>
     </div>
   );

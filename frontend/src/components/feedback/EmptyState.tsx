@@ -18,16 +18,16 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   action,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center bg-[#0a0f1d]/50 border border-dashed border-slate-800 rounded-xl my-4">
-      <div className="p-3 bg-slate-800/40 text-slate-400 rounded-full mb-3 border border-slate-700/50">
+    <div className="flex flex-col items-center justify-center p-8 text-center bg-[#F4F2FB]/60 border border-dashed border-[#E6E2F0] rounded-[20px] my-3">
+      <div className="p-3 bg-white text-[#7C3AED] rounded-[14px] mb-3 border border-[#E6E2F0] shadow-ap-sm">
         {icon || <Inbox className="w-6 h-6" />}
       </div>
-      <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">{title}</h3>
-      <p className="text-xs text-slate-400 mt-1 max-w-sm">{message}</p>
+      <h3 className="text-sm font-semibold text-[#3B1D5E] tracking-tight">{title}</h3>
+      <p className="text-xs text-[#6B5B84] mt-1 max-w-sm">{message}</p>
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-4 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-mono font-medium transition"
+          className="mt-4 px-4 py-2 bg-[#1DE9C0] hover:bg-[#18D4AD] text-[#3B1D5E] font-semibold rounded-[10px] text-xs transition shadow-sm"
         >
           {action.label}
         </button>

@@ -75,46 +75,46 @@ export const Heatgrid: React.FC<HeatgridProps> = ({ cells, onCellClick, loading 
   }
 
   const getCellColor = (hi: number | undefined) => {
-    if (hi === undefined) return 'bg-slate-800/40 border-slate-800 text-slate-600';
-    if (hi >= 75) return 'bg-emerald-950/70 hover:bg-emerald-800/80 border-emerald-500/40 text-emerald-300';
-    if (hi >= 50) return 'bg-amber-950/80 hover:bg-amber-700/80 border-amber-500/60 text-amber-300 animate-pulse';
-    return 'bg-rose-950/90 hover:bg-rose-700/90 border-rose-500/80 text-rose-200 animate-pulse';
+    if (hi === undefined) return 'bg-[#F4F2FB] border-[#E6E2F0] text-[#BAAFC9]';
+    if (hi >= 75) return 'bg-[#ECFDF5] hover:bg-[#D1FAE5] border-[#A7F3D0] text-[#059669] font-bold';
+    if (hi >= 50) return 'bg-[#FFFBEB] hover:bg-[#FEF3C7] border-[#FDE68A] text-[#D97706] font-bold';
+    return 'bg-[#FEF2F2] hover:bg-[#FEE2E2] border-[#FECACA] text-[#DC2626] font-bold';
   };
 
   return (
-    <div className="w-full flex flex-col space-y-3 bg-[#0c1220]/80 border border-slate-800 rounded-xl p-4 shadow-lg">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+    <div className="w-full flex flex-col space-y-3 bg-white border border-[#E6E2F0] rounded-[20px] p-5 shadow-ap-card">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EDE9F5] pb-4">
         <div>
-          <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
-            Aircraft × System Health Heat-Grid
+          <h3 className="text-sm sm:text-base font-semibold text-[#3B1D5E] tracking-tight">
+            Fleet System Readiness Heat-Grid
           </h3>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-xs text-[#6B5B84] mt-0.5">
             Click any cell to inspect airframe telemetry and subsystem components
           </p>
         </div>
 
         {/* Legend & Filter */}
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 text-[10px] font-mono text-slate-400">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center space-x-3 text-[10px] font-mono text-[#6B5B84]">
             <span className="flex items-center">
-              <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/70 inline-block mr-1" /> ≥75 (Nominal)
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#059669] inline-block mr-1" /> ≥75 (Nominal)
             </span>
             <span className="flex items-center">
-              <span className="w-2.5 h-2.5 rounded-sm bg-amber-500/80 inline-block mr-1" /> 50–74 (Degraded)
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#D97706] inline-block mr-1" /> 50–74 (Degraded)
             </span>
             <span className="flex items-center">
-              <span className="w-2.5 h-2.5 rounded-sm bg-rose-500/90 inline-block mr-1" /> &lt;50 (Critical)
+              <span className="w-2.5 h-2.5 rounded-sm bg-[#DC2626] inline-block mr-1" /> &lt;50 (Critical)
             </span>
           </div>
 
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+            <Search className="w-3.5 h-3.5 text-[#6B5B84] absolute left-2.5 top-2.5" />
             <input
               type="text"
               placeholder="Filter tail..."
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
-              className="bg-slate-900 border border-slate-700/80 text-slate-200 text-xs font-mono rounded pl-7 pr-2 py-1 w-28 focus:outline-none focus:border-blue-500"
+              className="bg-[#F4F2FB] border border-[#E6E2F0] text-[#3B1D5E] text-xs font-mono rounded-[10px] pl-7 pr-2.5 py-1.5 w-32 focus:outline-none focus:border-[#7C3AED] focus:bg-white"
             />
           </div>
         </div>
@@ -123,22 +123,22 @@ export const Heatgrid: React.FC<HeatgridProps> = ({ cells, onCellClick, loading 
       {/* Heatgrid Matrix */}
       <div className="overflow-x-auto max-h-[380px] overflow-y-auto pr-1">
         <table className="w-full border-collapse text-left text-xs font-mono">
-          <thead className="sticky top-0 bg-[#090e1a] z-10">
-            <tr className="border-b border-slate-800 text-[11px] text-slate-400 select-none">
-              <th className="py-2 px-3 font-semibold w-24">Airframe</th>
+          <thead className="sticky top-0 bg-[#F4F2FB] z-10">
+            <tr className="border-b border-[#E6E2F0] text-[11px] text-[#6B5B84] select-none">
+              <th className="py-2.5 px-3 font-bold w-24">Airframe</th>
               {systems.map((sys) => (
-                <th key={sys} className="py-2 px-2 text-center font-medium truncate max-w-[100px]" title={sys}>
+                <th key={sys} className="py-2.5 px-2 text-center font-semibold truncate max-w-[100px]" title={sys}>
                   {sys.replace('Environmental (ECS)', 'ECS').replace('Landing gear', 'Landing Gear')}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/40">
+          <tbody className="divide-y divide-[#EDE9F5]">
             {filteredAircraft.map((ac) => (
-              <tr key={ac.id} className="hover:bg-slate-800/30 transition-colors">
+              <tr key={ac.id} className="hover:bg-[#FBF9FE] transition-colors">
                 <td
                   onClick={() => onCellClick && onCellClick(ac.id)}
-                  className="py-1.5 px-3 font-semibold text-slate-300 hover:text-blue-400 cursor-pointer select-none"
+                  className="py-2 px-3 font-bold text-[#3B1D5E] hover:text-[#7C3AED] cursor-pointer select-none"
                   title={`Inspect ${ac.tail}`}
                 >
                   {ac.tail}
@@ -157,7 +157,7 @@ export const Heatgrid: React.FC<HeatgridProps> = ({ cells, onCellClick, loading 
                               }`
                             : `${ac.tail} • ${sys}: No data`
                         }
-                        className={`w-full py-1 rounded border text-[11px] font-semibold transition-all duration-150 ${getCellColor(
+                        className={`w-full py-1.5 rounded-[8px] border text-[11px] font-bold transition-all duration-150 ${getCellColor(
                           hi
                         )}`}
                       >

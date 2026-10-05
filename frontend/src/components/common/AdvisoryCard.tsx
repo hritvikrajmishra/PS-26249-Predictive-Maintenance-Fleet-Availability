@@ -72,7 +72,7 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
   }, [advisory.explanation]);
 
   return (
-    <div className="bg-[#0c1220]/90 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm relative overflow-hidden flex flex-col justify-between">
+    <div className="bg-white border border-[#E6E2F0] rounded-[20px] p-5 shadow-ap-card relative overflow-hidden flex flex-col justify-between hover:shadow-ap-floating hover:border-[#D8D2E5] transition-all duration-200">
       {/* Top Banner & Priority */}
       <div>
         <div className="flex items-start justify-between gap-3 mb-3">
@@ -80,34 +80,34 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
             <StatusBadge status={advisory.priority} size="md" />
             <StatusBadge status={advisory.status} size="sm" />
             {advisory.spare_status && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#E0F8FA] text-[#0E7490] border border-[#B6EFF4]">
                 Spare: {advisory.spare_status}
               </span>
             )}
           </div>
-          <span className="text-[11px] font-mono text-slate-500">{advisory.as_of_date}</span>
+          <span className="text-[11px] font-mono text-[#6B5B84]">{advisory.as_of_date}</span>
         </div>
 
         {/* Title / Action */}
-        <h4 className="text-base font-semibold text-white font-mono flex items-center gap-1.5">
-          <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0" />
+        <h4 className="text-base font-semibold text-[#3B1D5E] flex items-center gap-1.5">
+          <ShieldAlert className="w-4 h-4 text-[#D97706] shrink-0" />
           <span>{advisory.action}</span>
         </h4>
 
         {/* Component & Airframe info */}
-        <div className="mt-2 text-xs font-mono text-slate-400 flex flex-wrap gap-x-4 gap-y-1">
+        <div className="mt-2 text-xs font-mono text-[#6B5B84] flex flex-wrap gap-x-4 gap-y-1">
           <span>
             Airframe:{' '}
-            <strong className="text-slate-200">{advisory.tail_code || advisory.aircraft_id || 'N/A'}</strong>
+            <strong className="text-[#3B1D5E]">{advisory.tail_code || advisory.aircraft_id || 'N/A'}</strong>
           </span>
           <span>
-            System: <strong className="text-slate-200">{advisory.system_name || 'N/A'}</strong>
+            System: <strong className="text-[#3B1D5E]">{advisory.system_name || 'N/A'}</strong>
           </span>
           <span className="flex items-center gap-1">
             Component:{' '}
             <button
               onClick={() => onNavigateComponent && onNavigateComponent(advisory.component_id)}
-              className="text-blue-400 hover:underline flex items-center font-bold"
+              className="text-[#7C3AED] hover:text-[#5B21B6] hover:underline flex items-center font-bold"
             >
               {advisory.component_name || advisory.component_id}
               <ArrowUpRight className="w-3 h-3 ml-0.5" />
@@ -117,31 +117,31 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
 
         {/* Expected Downtime */}
         {advisory.expected_downtime_days !== null && advisory.expected_downtime_days !== undefined && (
-          <div className="mt-2 text-xs font-mono text-slate-400">
+          <div className="mt-2 text-xs font-mono text-[#6B5B84]">
             Estimated turnaround loss:{' '}
-            <span className="text-amber-400 font-bold">{advisory.expected_downtime_days} days</span>
+            <span className="text-[#3B1D5E] font-bold">{advisory.expected_downtime_days} days</span>
           </div>
         )}
 
         {/* SHAP Drivers / Explanation */}
         {!compact && explanationDrivers.length > 0 && (
-          <div className="mt-3.5 pt-3 border-t border-slate-800/80">
-            <span className="text-[11px] uppercase tracking-wider font-mono text-slate-400 font-semibold block mb-1.5 flex items-center gap-1">
-              <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="mt-3.5 pt-3 border-t border-[#EDE9F5]">
+            <span className="text-[11px] uppercase tracking-wider text-[#6B5B84] font-semibold block mb-1.5 flex items-center gap-1">
+              <Cpu className="w-3.5 h-3.5 text-[#7C3AED]" />
               Primary Degradation Drivers (ML Attribution)
             </span>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {explanationDrivers.slice(0, 3).map((driver, idx) => (
                 <div key={idx} className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-400 truncate max-w-[200px]">{driver.feature}</span>
+                  <span className="text-[#6B5B84] truncate max-w-[200px]">{driver.feature}</span>
                   <div className="flex items-center space-x-2">
-                    <div className="w-24 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-24 bg-[#F4F2FB] h-1.5 rounded-full overflow-hidden border border-[#E6E2F0]">
                       <div
-                        className="bg-cyan-400 h-full rounded-full"
+                        className="bg-gradient-to-r from-[#1DE9C0] to-[#7C3AED] h-full rounded-full"
                         style={{ width: `${Math.min(100, Math.abs(driver.impact) * 100)}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-cyan-300 w-8 text-right">
+                    <span className="text-[10px] text-[#7C3AED] w-8 text-right font-bold">
                       {driver.impact > 0 ? `+${driver.impact.toFixed(2)}` : driver.impact.toFixed(2)}
                     </span>
                   </div>
@@ -152,13 +152,13 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
         )}
 
         {advisory.dismiss_reason && (
-          <div className="mt-2 p-2 bg-rose-950/30 border border-rose-800/40 rounded text-xs font-mono text-rose-300">
+          <div className="mt-2 p-2.5 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-xs font-mono text-[#DC2626]">
             <strong>Dismissal Reason:</strong> {advisory.dismiss_reason}
           </div>
         )}
 
         {actionError && (
-          <div className="mt-2 p-2 bg-rose-950/50 border border-rose-500/50 rounded text-xs text-rose-200">
+          <div className="mt-2 p-2.5 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] text-xs text-[#DC2626]">
             {actionError}
           </div>
         )}
@@ -166,20 +166,20 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
 
       {/* Action Buttons (Human-in-the-loop workflow) */}
       {advisory.status === 'proposed' && (
-        <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+        <div className="mt-4 pt-3 border-t border-[#EDE9F5] flex items-center justify-between gap-2">
           {canAction ? (
             <>
               <button
                 onClick={handleAccept}
                 disabled={updateMutation.isPending}
-                className="flex-1 py-1.5 px-3 bg-emerald-600/80 hover:bg-emerald-500 text-white rounded text-xs font-mono font-semibold flex items-center justify-center gap-1 transition"
+                className="flex-1 py-1.5 px-3 bg-[#1DE9C0] hover:bg-[#18D4AD] text-[#3B1D5E] rounded-[10px] text-xs font-semibold flex items-center justify-center gap-1 transition shadow-sm"
               >
                 <CheckCircle className="w-3.5 h-3.5" /> Accept
               </button>
 
               <button
                 onClick={() => (onSchedule ? onSchedule(advisory) : undefined)}
-                className="flex-1 py-1.5 px-3 bg-blue-600/80 hover:bg-blue-500 text-white rounded text-xs font-mono font-semibold flex items-center justify-center gap-1 transition"
+                className="flex-1 py-1.5 px-3 bg-[#F4EBFF] hover:bg-[#EDE9F5] text-[#7C3AED] border border-[#E5D0FA] rounded-[10px] text-xs font-semibold flex items-center justify-center gap-1 transition shadow-sm"
               >
                 <Calendar className="w-3.5 h-3.5" /> Schedule
               </button>
@@ -187,14 +187,14 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
               <button
                 onClick={() => setShowDismissModal(true)}
                 disabled={updateMutation.isPending}
-                className="py-1.5 px-2.5 bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-700/60 rounded text-xs font-mono transition"
+                className="py-1.5 px-2.5 bg-[#F4F2FB] hover:bg-[#FEF2F2] text-[#6B5B84] hover:text-[#DC2626] border border-[#E6E2F0] hover:border-[#FECACA] rounded-[10px] text-xs font-mono transition"
                 title="Dismiss with reason"
               >
                 <XCircle className="w-3.5 h-3.5" />
               </button>
             </>
           ) : (
-            <span className="text-[11px] font-mono text-slate-500 italic">
+            <span className="text-[11px] font-mono text-[#8F7FA8] italic">
               Read-only view (Requires Planner / Commander role to accept or schedule)
             </span>
           )}
@@ -203,19 +203,19 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
 
       {/* Dismiss Reason Modal */}
       {showDismissModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-[#3B1D5E]/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleDismissSubmit}
-            className="bg-[#0e1629] border border-slate-700 rounded-xl p-5 max-w-md w-full shadow-2xl space-y-4"
+            className="bg-white border border-[#E6E2F0] rounded-[20px] p-6 max-w-md w-full shadow-ap-floating space-y-4"
           >
-            <div className="flex items-center space-x-2 text-rose-400">
+            <div className="flex items-center space-x-2 text-[#DC2626]">
               <AlertCircle className="w-5 h-5" />
-              <h3 className="font-semibold text-sm font-mono uppercase tracking-wider text-white">
-                Mandatory Dismissal Audit Log
+              <h3 className="font-semibold text-sm text-[#3B1D5E]">
+                Engineering Justification Required
               </h3>
             </div>
-            <p className="text-xs text-slate-300">
-              Provide an engineering justification for overriding predictive advisory #{advisory.advisory_id}:
+            <p className="text-xs text-[#6B5B84]">
+              Provide an engineering rationale for dismissing advisory #{advisory.advisory_id}:
             </p>
             <textarea
               required
@@ -223,20 +223,20 @@ export const AdvisoryCard: React.FC<AdvisoryCardProps> = ({
               value={dismissReason}
               onChange={(e) => setDismissReason(e.target.value)}
               placeholder="e.g. Component inspected visually and verified nominal; sensor drift suspected."
-              className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs font-mono text-white focus:outline-none focus:border-rose-500"
+              className="w-full bg-[#F4F2FB] border border-[#E6E2F0] rounded-[10px] p-2.5 text-xs text-[#3B1D5E] focus:outline-none focus:border-[#7C3AED] focus:bg-white"
             />
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => setShowDismissModal(false)}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs font-mono"
+                className="px-3.5 py-1.5 bg-[#F4F2FB] hover:bg-[#EDE9F5] text-[#6B5B84] rounded-[10px] text-xs border border-[#E6E2F0]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!dismissReason.trim() || updateMutation.isPending}
-                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white rounded text-xs font-mono font-semibold"
+                className="px-4 py-1.5 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 text-white rounded-[10px] text-xs font-semibold shadow-sm"
               >
                 Confirm Dismissal
               </button>

@@ -194,24 +194,23 @@ export const PredictiveQueuePage: React.FC = () => {
     }
   };
 
-  // Summary counts
   const p1Count = useMemo(() => items.filter((a) => a.priority === 'P1').length, [items]);
   const p2Count = useMemo(() => items.filter((a) => a.priority === 'P2').length, [items]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. Header & Actions Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E2F0] pb-4">
         <div>
-          <div className="flex items-center space-x-2">
-            <div className="p-2 bg-rose-600/20 border border-rose-500/40 rounded-xl text-rose-400">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 bg-[#FEF2F2] border border-[#FCA5A5] rounded-[12px] text-[#DC2626] shadow-sm">
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold font-mono text-white tracking-tight flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold text-[#3B1D5E] tracking-tight flex items-center gap-2">
                 Predictive Maintenance Queue
               </h1>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-xs text-[#6B5B84] mt-0.5">
                 Priority-ranked risk worklist generated from ML inference, failure rules, and spares stock
               </p>
             </div>
@@ -223,7 +222,7 @@ export const PredictiveQueuePage: React.FC = () => {
           <button
             onClick={() => refetch()}
             disabled={loadingAdvisories}
-            className="p-2 bg-slate-900 border border-slate-700/80 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-mono transition"
+            className="p-2 bg-white border border-[#E6E2F0] hover:bg-[#F4F2FB] text-[#6B5B84] hover:text-[#3B1D5E] rounded-[10px] text-xs transition shadow-sm"
             title="Refresh Queue"
           >
             <RefreshCw className={`w-4 h-4 ${loadingAdvisories ? 'animate-spin' : ''}`} />
@@ -235,7 +234,7 @@ export const PredictiveQueuePage: React.FC = () => {
                 setEngineResult(null);
                 setEngineModalOpen(true);
               }}
-              className="py-1.5 px-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-lg text-xs font-mono font-semibold flex items-center space-x-1.5 transition shadow-lg shadow-blue-900/30"
+              className="py-2 px-4 bg-[#1DE9C0] hover:bg-[#15d1ac] text-[#1E1035] rounded-[10px] text-xs font-bold flex items-center space-x-1.5 transition shadow-ap-mint"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Trigger Scoring Engine</span>
@@ -245,100 +244,100 @@ export const PredictiveQueuePage: React.FC = () => {
       </div>
 
       {actionError && (
-        <div className="p-3 bg-rose-950/60 border border-rose-500/50 rounded-xl text-xs font-mono text-rose-200">
+        <div className="p-3.5 bg-[#FEF2F2] border border-[#FCA5A5] rounded-[12px] text-xs text-[#DC2626]">
           {actionError}
         </div>
       )}
 
-      {/* 2. Queue Status Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-        <div className="p-3 bg-slate-900/80 border border-rose-900/40 rounded-xl flex items-center justify-between">
+      {/* 2. LEVEL 1: Queue Status Summary Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-xs">
+        <div className="p-4 bg-white border border-[#E6E2F0] rounded-[16px] shadow-ap-card flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-rose-400 uppercase font-bold">P1 Critical Queue</div>
-            <div className="text-2xl font-bold text-white mt-0.5">{p1Count}</div>
+            <div className="text-[10px] text-[#DC2626] uppercase font-bold tracking-wider">P1 Critical Queue</div>
+            <div className="text-2xl font-bold font-mono text-[#3B1D5E] mt-1">{p1Count}</div>
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+          <span className="w-3 h-3 rounded-full bg-[#EF4444] animate-ping" />
         </div>
 
-        <div className="p-3 bg-slate-900/80 border border-amber-900/40 rounded-xl flex items-center justify-between">
+        <div className="p-4 bg-white border border-[#E6E2F0] rounded-[16px] shadow-ap-card flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-amber-400 uppercase font-bold">P2 High Queue</div>
-            <div className="text-2xl font-bold text-white mt-0.5">{p2Count}</div>
+            <div className="text-[10px] text-[#D97706] uppercase font-bold tracking-wider">P2 High Queue</div>
+            <div className="text-2xl font-bold font-mono text-[#3B1D5E] mt-1">{p2Count}</div>
           </div>
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+          <span className="w-3 h-3 rounded-full bg-[#F59E0B]" />
         </div>
 
-        <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between">
+        <div className="p-4 bg-white border border-[#E6E2F0] rounded-[16px] shadow-ap-card flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-bold">Selected Items</div>
-            <div className="text-2xl font-bold text-cyan-300 mt-0.5">{selectedIds.size}</div>
+            <div className="text-[10px] text-[#6B5B84] uppercase font-bold tracking-wider">Selected Items</div>
+            <div className="text-2xl font-bold font-mono text-[#0D6553] mt-1">{selectedIds.size}</div>
           </div>
-          <CheckSquare className="w-5 h-5 text-cyan-400" />
+          <CheckSquare className="w-5 h-5 text-[#0D6553]" />
         </div>
 
-        <div className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between">
+        <div className="p-4 bg-white border border-[#E6E2F0] rounded-[16px] shadow-ap-card flex items-center justify-between">
           <div>
-            <div className="text-[10px] text-slate-400 uppercase font-bold">Total In Filter</div>
-            <div className="text-2xl font-bold text-slate-200 mt-0.5">{advisoriesData?.total ?? 0}</div>
+            <div className="text-[10px] text-[#6B5B84] uppercase font-bold tracking-wider">Total In Filter</div>
+            <div className="text-2xl font-bold font-mono text-[#3B1D5E] mt-1">{advisoriesData?.total ?? 0}</div>
           </div>
-          <Package className="w-5 h-5 text-slate-400" />
+          <Package className="w-5 h-5 text-[#8F7FA8]" />
         </div>
       </div>
 
-      {/* 3. Filters & Search Strip */}
-      <div className="p-4 bg-[#0c1220]/80 border border-slate-800 rounded-xl space-y-3 font-mono text-xs">
+      {/* 3. LEVEL 2: Filters & Search Strip */}
+      <div className="p-4 bg-white border border-[#E6E2F0] rounded-[16px] space-y-3 text-xs shadow-ap-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {/* Priority Filter */}
-            <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1">
-              <span className="text-slate-400 text-[11px]">Priority:</span>
+            <div className="flex items-center space-x-1.5 bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] px-2.5 py-1.5">
+              <span className="text-[#6B5B84] text-[11px]">Priority:</span>
               <select
                 value={priorityFilter}
                 onChange={(e) => {
                   setPriorityFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-transparent text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#3B1D5E] font-semibold focus:outline-none cursor-pointer"
               >
-                <option value="all" className="bg-slate-900 text-white">All Priorities</option>
-                <option value="P1" className="bg-slate-900 text-white">P1 — Critical Grounding</option>
-                <option value="P2" className="bg-slate-900 text-white">P2 — High Urgency</option>
-                <option value="P3" className="bg-slate-900 text-white">P3 — Watch Window</option>
-                <option value="P4" className="bg-slate-900 text-white">P4 — Routine Deferred</option>
+                <option value="all">All Priorities</option>
+                <option value="P1">P1 — Critical Grounding</option>
+                <option value="P2">P2 — High Urgency</option>
+                <option value="P3">P3 — Watch Window</option>
+                <option value="P4">P4 — Routine Deferred</option>
               </select>
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1">
-              <span className="text-slate-400 text-[11px]">Status:</span>
+            <div className="flex items-center space-x-1.5 bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] px-2.5 py-1.5">
+              <span className="text-[#6B5B84] text-[11px]">Status:</span>
               <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-transparent text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#3B1D5E] font-semibold focus:outline-none cursor-pointer"
               >
-                <option value="all" className="bg-slate-900 text-white">All Statuses</option>
-                <option value="proposed" className="bg-slate-900 text-white">Proposed (Action Needed)</option>
-                <option value="accepted" className="bg-slate-900 text-white">Accepted</option>
-                <option value="scheduled" className="bg-slate-900 text-white">Scheduled</option>
-                <option value="completed" className="bg-slate-900 text-white">Completed</option>
-                <option value="dismissed" className="bg-slate-900 text-white">Dismissed</option>
+                <option value="all">All Statuses</option>
+                <option value="proposed">Proposed (Action Needed)</option>
+                <option value="accepted">Accepted</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="completed">Completed</option>
+                <option value="dismissed">Dismissed</option>
               </select>
             </div>
 
             {/* Functional System Filter */}
-            <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1">
-              <span className="text-slate-400 text-[11px]">System:</span>
+            <div className="flex items-center space-x-1.5 bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] px-2.5 py-1.5">
+              <span className="text-[#6B5B84] text-[11px]">System:</span>
               <select
                 value={systemFilter}
                 onChange={(e) => setSystemFilter(e.target.value)}
-                className="bg-transparent text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#3B1D5E] font-semibold focus:outline-none cursor-pointer"
               >
-                <option value="all" className="bg-slate-900 text-white">All Systems</option>
+                <option value="all">All Systems</option>
                 {systemsData?.map((s) => (
-                  <option key={s.system_id} value={s.name} className="bg-slate-900 text-white">
+                  <option key={s.system_id} value={s.name}>
                     {s.name}
                   </option>
                 ))}
@@ -346,37 +345,37 @@ export const PredictiveQueuePage: React.FC = () => {
             </div>
 
             {/* Spare Status Filter */}
-            <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1">
-              <span className="text-slate-400 text-[11px]">Spare:</span>
+            <div className="flex items-center space-x-1.5 bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] px-2.5 py-1.5">
+              <span className="text-[#6B5B84] text-[11px]">Spare:</span>
               <select
                 value={spareFilter}
                 onChange={(e) => {
                   setSpareFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-transparent text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#3B1D5E] font-semibold focus:outline-none cursor-pointer"
               >
-                <option value="all" className="bg-slate-900 text-white">All Stock</option>
-                <option value="in_stock" className="bg-slate-900 text-white">In Stock</option>
-                <option value="low_stock" className="bg-slate-900 text-white">Low Stock</option>
-                <option value="out_of_stock" className="bg-slate-900 text-white">Out of Stock</option>
+                <option value="all">All Stock</option>
+                <option value="in_stock">In Stock</option>
+                <option value="low_stock">Low Stock</option>
+                <option value="out_of_stock">Out of Stock</option>
               </select>
             </div>
 
             {/* Airframe Filter */}
-            <div className="flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 rounded px-2.5 py-1">
-              <span className="text-slate-400 text-[11px]">Airframe:</span>
+            <div className="flex items-center space-x-1.5 bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] px-2.5 py-1.5">
+              <span className="text-[#6B5B84] text-[11px]">Airframe:</span>
               <select
                 value={aircraftFilter}
                 onChange={(e) => {
                   setAircraftFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="bg-transparent text-white focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#3B1D5E] font-semibold font-mono focus:outline-none cursor-pointer"
               >
-                <option value="all" className="bg-slate-900 text-white">All Fleet</option>
+                <option value="all">All Fleet</option>
                 {aircraftData?.items.map((ac) => (
-                  <option key={ac.aircraft_id} value={ac.aircraft_id} className="bg-slate-900 text-white">
+                  <option key={ac.aircraft_id} value={ac.aircraft_id}>
                     {ac.tail_code}
                   </option>
                 ))}
@@ -386,35 +385,35 @@ export const PredictiveQueuePage: React.FC = () => {
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-[#8F7FA8] absolute left-2.5 top-2.5" />
             <input
               type="text"
               placeholder="Search component, action..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-900 border border-slate-700/80 text-white text-xs font-mono rounded-lg pl-8 pr-3 py-1.5 w-60 focus:outline-none focus:border-blue-500"
+              className="bg-[#F4F2FB] border border-[#E6E2F0] text-[#3B1D5E] text-xs rounded-[8px] pl-8 pr-3 py-1.5 w-60 focus:outline-none focus:border-[#1DE9C0] placeholder-[#8F7FA8]"
             />
           </div>
         </div>
 
         {/* Bulk Action Bar (when selected) */}
         {selectedIds.size > 0 && canAction && (
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
-            <span className="text-cyan-300 font-semibold">
+          <div className="pt-2.5 border-t border-[#E6E2F0] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <span className="text-[#0D6553] font-bold">
               {selectedIds.size} advisories selected for bulk operation
             </span>
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleBulkAccept}
                 disabled={updateMutation.isPending}
-                className="py-1 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-semibold flex items-center gap-1 transition"
+                className="py-1.5 px-3 bg-[#059669] hover:bg-[#047857] text-white rounded-[8px] font-bold flex items-center gap-1 transition shadow-sm"
               >
                 <CheckCircle className="w-3.5 h-3.5" /> Accept Selected ({selectedIds.size})
               </button>
               <button
                 onClick={() => setDismissTarget({ bulk: true })}
                 disabled={updateMutation.isPending}
-                className="py-1 px-3 bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 border border-slate-700 rounded font-semibold flex items-center gap-1 transition"
+                className="py-1.5 px-3 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] rounded-[8px] font-bold flex items-center gap-1 transition"
               >
                 <XCircle className="w-3.5 h-3.5" /> Dismiss Selected ({selectedIds.size})
               </button>
@@ -423,19 +422,19 @@ export const PredictiveQueuePage: React.FC = () => {
         )}
       </div>
 
-      {/* 4. Advisories Data Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-[#0c1220]/80 shadow-md">
+      {/* 4. LEVEL 3: Advisories Data Table */}
+      <div className="overflow-x-auto rounded-[20px] border border-[#E6E2F0] bg-white shadow-ap-card">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 bg-[#090e1a]/90 text-slate-400 font-mono uppercase text-[11px] tracking-wider select-none">
+            <tr className="border-b border-[#E6E2F0] bg-[#F4F2FB] text-[#6B5B84] uppercase text-[11px] tracking-wider select-none font-semibold">
               <th className="py-3 px-3 w-10 text-center">
                 <button
                   onClick={toggleSelectAll}
-                  className="text-slate-400 hover:text-white transition"
+                  className="text-[#6B5B84] hover:text-[#3B1D5E] transition"
                   title="Toggle Select All"
                 >
                   {allCurrentSelected ? (
-                    <CheckSquare className="w-4 h-4 text-cyan-400" />
+                    <CheckSquare className="w-4 h-4 text-[#0D6553]" />
                   ) : (
                     <Square className="w-4 h-4" />
                   )}
@@ -453,7 +452,7 @@ export const PredictiveQueuePage: React.FC = () => {
               <th className="py-3 px-4 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-mono text-slate-200">
+          <tbody className="divide-y divide-[#E6E2F0] text-[#3B1D5E]">
             {loadingAdvisories ? (
               <tr>
                 <td colSpan={11} className="py-8">
@@ -479,18 +478,18 @@ export const PredictiveQueuePage: React.FC = () => {
                 return (
                   <tr
                     key={advisory.advisory_id}
-                    className={`transition-colors duration-150 ${
-                      isSelected ? 'bg-blue-600/10' : 'hover:bg-slate-800/40'
+                    className={`transition-all duration-150 ${
+                      isSelected ? 'bg-[#E6FCF7]' : 'hover:bg-[#FBF9FE]'
                     }`}
                   >
                     {/* Checkbox */}
                     <td className="py-3 px-3 text-center">
                       <button
                         onClick={() => toggleSelectOne(advisory.advisory_id)}
-                        className="text-slate-400 hover:text-white transition"
+                        className="text-[#8F7FA8] hover:text-[#3B1D5E] transition"
                       >
                         {isSelected ? (
-                          <CheckSquare className="w-4 h-4 text-cyan-400" />
+                          <CheckSquare className="w-4 h-4 text-[#0D6553]" />
                         ) : (
                           <Square className="w-4 h-4" />
                         )}
@@ -506,7 +505,7 @@ export const PredictiveQueuePage: React.FC = () => {
                     <td className="py-3 px-4">
                       <button
                         onClick={() => navigate(`/aircraft?id=${advisory.aircraft_id}`)}
-                        className="font-bold text-white hover:text-blue-400 transition"
+                        className="font-bold font-mono text-[#3B1D5E] hover:text-[#0D6553] transition"
                       >
                         {advisory.tail_code || advisory.aircraft_id}
                       </button>
@@ -517,31 +516,31 @@ export const PredictiveQueuePage: React.FC = () => {
                       <div>
                         <button
                           onClick={() => navigate(`/components/${advisory.component_id}`)}
-                          className="font-semibold text-slate-200 hover:text-cyan-300 transition text-left"
+                          className="font-semibold text-[#3B1D5E] hover:text-[#0D6553] transition text-left"
                         >
                           {advisory.component_name || advisory.component_id}
                         </button>
-                        <div className="text-[10px] text-slate-400">{advisory.system_name}</div>
+                        <div className="text-[10px] text-[#8F7FA8]">{advisory.system_name}</div>
                       </div>
                     </td>
 
                     {/* Action */}
                     <td className="py-3 px-4">
-                      <span className="text-amber-300 font-medium flex items-center gap-1.5">
-                        <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0 text-amber-400" />
+                      <span className="text-[#3B1D5E] font-medium flex items-center gap-1.5">
+                        <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-[#D97706]" />
                         {advisory.action}
                       </span>
                     </td>
 
                     {/* Risk */}
-                    <td className="py-3 px-3 text-right font-bold">
+                    <td className="py-3 px-3 text-right font-bold font-mono">
                       <span
                         className={
                           (riskVal ?? 0) >= 0.5
-                            ? 'text-rose-400'
+                            ? 'text-[#DC2626]'
                             : (riskVal ?? 0) >= 0.2
-                            ? 'text-amber-400'
-                            : 'text-slate-400'
+                            ? 'text-[#D97706]'
+                            : 'text-[#6B5B84]'
                         }
                       >
                         {riskVal !== undefined ? `${(riskVal * 100).toFixed(0)}%` : '—'}
@@ -549,14 +548,14 @@ export const PredictiveQueuePage: React.FC = () => {
                     </td>
 
                     {/* RUL */}
-                    <td className="py-3 px-3 text-right font-bold">
+                    <td className="py-3 px-3 text-right font-bold font-mono">
                       <span
                         className={
                           (rulVal ?? 99) <= 14
-                            ? 'text-rose-400'
+                            ? 'text-[#DC2626]'
                             : (rulVal ?? 99) <= 30
-                            ? 'text-amber-400'
-                            : 'text-slate-300'
+                            ? 'text-[#D97706]'
+                            : 'text-[#3B1D5E]'
                         }
                       >
                         {rulVal !== undefined ? `${Math.round(rulVal)}d` : '—'}
@@ -569,7 +568,7 @@ export const PredictiveQueuePage: React.FC = () => {
                     </td>
 
                     {/* Expected Downtime */}
-                    <td className="py-3 px-3 text-right text-slate-300">
+                    <td className="py-3 px-3 text-right text-[#6B5B84] font-mono font-bold">
                       {advisory.expected_downtime_days ? `${advisory.expected_downtime_days}d` : '—'}
                     </td>
 
@@ -586,7 +585,7 @@ export const PredictiveQueuePage: React.FC = () => {
                             <button
                               onClick={() => handleSingleAccept(advisory.advisory_id)}
                               disabled={updateMutation.isPending}
-                              className="p-1 px-2 bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded border border-emerald-500/40 text-[10px] font-semibold transition"
+                              className="p-1 px-2.5 bg-[#ECFDF5] hover:bg-[#059669] text-[#059669] hover:text-white rounded-[8px] border border-[#A7F3D0] text-[10px] font-bold transition"
                               title="Accept Advisory"
                             >
                               Accept
@@ -598,7 +597,7 @@ export const PredictiveQueuePage: React.FC = () => {
                                   `/planning?aircraft=${advisory.aircraft_id}&component=${advisory.component_id}&advisory=${advisory.advisory_id}`
                                 )
                               }
-                              className="p-1 px-2 bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white rounded border border-blue-500/40 text-[10px] font-semibold transition"
+                              className="p-1 px-2.5 bg-[#E0F8FA] hover:bg-[#1DE9C0] text-[#0D6553] hover:text-[#1E1035] rounded-[8px] border border-[#1DE9C0]/40 text-[10px] font-bold transition shadow-sm"
                               title="Schedule Work Order"
                             >
                               Schedule
@@ -606,7 +605,7 @@ export const PredictiveQueuePage: React.FC = () => {
 
                             <button
                               onClick={() => setDismissTarget({ id: advisory.advisory_id })}
-                              className="p-1 px-1.5 bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 border border-slate-700 rounded text-[10px] transition"
+                              className="p-1 px-1.5 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] rounded-[8px] text-[10px] transition"
                               title="Dismiss with reason"
                             >
                               <XCircle className="w-3.5 h-3.5" />
@@ -616,7 +615,7 @@ export const PredictiveQueuePage: React.FC = () => {
 
                         <button
                           onClick={() => navigate(`/components/${advisory.component_id}`)}
-                          className="p-1 px-1.5 text-slate-400 hover:text-cyan-300 transition"
+                          className="p-1 px-1.5 text-[#8F7FA8] hover:text-[#0D6553] transition"
                           title="View Telemetry Evidence"
                         >
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -631,26 +630,26 @@ export const PredictiveQueuePage: React.FC = () => {
         </table>
       </div>
 
-      {/* 5. Pagination Footer */}
+      {/* 5. LEVEL 4: Pagination Footer */}
       {advisoriesData && advisoriesData.total_pages > 1 && (
-        <div className="flex items-center justify-between px-2 text-xs font-mono text-slate-400">
+        <div className="flex items-center justify-between px-2 text-xs text-[#6B5B84]">
           <div>
-            Page <span className="font-semibold text-white">{advisoriesData.page}</span> of{' '}
-            <span className="font-semibold text-white">{advisoriesData.total_pages}</span> ({advisoriesData.total}{' '}
+            Page <span className="font-bold text-[#3B1D5E]">{advisoriesData.page}</span> of{' '}
+            <span className="font-bold text-[#3B1D5E]">{advisoriesData.total_pages}</span> ({advisoriesData.total}{' '}
             advisories)
           </div>
-          <div className="flex space-x-1">
+          <div className="flex space-x-1.5">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage <= 1}
-              className="px-2.5 py-1 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-30"
+              className="px-3 py-1 rounded-[8px] border border-[#E6E2F0] bg-white hover:bg-[#F4F2FB] text-[#3B1D5E] disabled:opacity-40 shadow-sm"
             >
               Prev
             </button>
             <button
               onClick={() => setCurrentPage((p) => p + 1)}
               disabled={currentPage >= advisoriesData.total_pages}
-              className="px-2.5 py-1 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-30"
+              className="px-3 py-1 rounded-[8px] border border-[#E6E2F0] bg-white hover:bg-[#F4F2FB] text-[#3B1D5E] disabled:opacity-40 shadow-sm"
             >
               Next
             </button>
@@ -660,20 +659,20 @@ export const PredictiveQueuePage: React.FC = () => {
 
       {/* MODAL 1: Dismissal Audit Reason Modal */}
       {dismissTarget && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-[#3B1D5E]/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleDismissSubmit}
-            className="bg-[#0e1629] border border-slate-700 rounded-xl p-5 max-w-md w-full shadow-2xl space-y-4 font-mono text-xs"
+            className="bg-white border border-[#E6E2F0] rounded-[20px] p-6 max-w-md w-full shadow-ap-floating space-y-4 text-xs"
           >
-            <div className="flex items-center space-x-2 text-rose-400">
+            <div className="flex items-center space-x-2 text-[#DC2626]">
               <ShieldAlert className="w-5 h-5" />
-              <h3 className="font-semibold text-sm uppercase text-white">
-                Mandatory Override & Dismissal Justification
+              <h3 className="font-bold text-sm text-[#3B1D5E]">
+                Override & Dismissal Justification
               </h3>
             </div>
-            <p className="text-slate-300">
+            <p className="text-[#6B5B84]">
               {dismissTarget.bulk
-                ? `You are dismissing ${selectedIds.size} selected advisories. An audit justification is required by defense compliance rules:`
+                ? `You are dismissing ${selectedIds.size} selected advisories. An audit justification is required by fleet decision rules:`
                 : `You are dismissing advisory #${dismissTarget.id}. Enter an engineering justification:`}
             </p>
             <textarea
@@ -682,20 +681,20 @@ export const PredictiveQueuePage: React.FC = () => {
               value={dismissReason}
               onChange={(e) => setDismissReason(e.target.value)}
               placeholder="e.g. Visual inspection performed; component confirmed nominal with zero play; sensor drift documented."
-              className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-rose-500"
+              className="w-full bg-[#F4F2FB] border border-[#E6E2F0] rounded-[10px] p-2.5 text-[#3B1D5E] focus:outline-none focus:border-[#1DE9C0] placeholder-[#8F7FA8]"
             />
             <div className="flex justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => setDismissTarget(null)}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-semibold"
+                className="px-3 py-1.5 bg-[#F4F2FB] hover:bg-white text-[#6B5B84] rounded-[8px] font-bold border border-[#E6E2F0]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!dismissReason.trim() || updateMutation.isPending}
-                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded font-semibold"
+                className="px-3.5 py-1.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-[8px] font-bold shadow-sm"
               >
                 Confirm Dismissal
               </button>
@@ -706,50 +705,50 @@ export const PredictiveQueuePage: React.FC = () => {
 
       {/* MODAL 2: Batch Scoring Engine Trigger Modal */}
       {engineModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0e1629] border border-slate-700 rounded-xl p-6 max-w-lg w-full shadow-2xl space-y-4 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center space-x-2 text-cyan-400">
+        <div className="fixed inset-0 bg-[#3B1D5E]/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-[#E6E2F0] rounded-[20px] p-6 max-w-lg w-full shadow-ap-floating space-y-4 text-xs">
+            <div className="flex items-center justify-between border-b border-[#E6E2F0] pb-3">
+              <div className="flex items-center space-x-2 text-[#0D6553]">
                 <Play className="w-5 h-5 fill-current" />
-                <h3 className="font-bold text-sm uppercase text-white">
+                <h3 className="font-bold text-sm text-[#3B1D5E]">
                   Execute Predictive Maintenance Scoring Engine
                 </h3>
               </div>
               <button
                 onClick={() => setEngineModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-[#8F7FA8] hover:text-[#3B1D5E]"
               >
                 ✕
               </button>
             </div>
 
-            <p className="text-slate-300 leading-relaxed">
-              Triggers the batch scoring engine (`POST /api/v1/engine/run`) to evaluate rolling flight telemetry,
+            <p className="text-[#6B5B84] leading-relaxed">
+              Triggers the scoring engine to evaluate rolling flight telemetry,
               infer failure risk and RUL models, synthesize prioritization rules, and generate updated advisories.
             </p>
 
             <form onSubmit={handleRunEngineSubmit} className="space-y-4">
               <div>
-                <label className="block text-slate-400 mb-1">Cutoff Reference Date (as_of_date)</label>
+                <label className="block text-[#6B5B84] mb-1 font-semibold">Reference Date (as_of_date)</label>
                 <input
                   type="date"
                   value={engineAsOf}
                   onChange={(e) => setEngineAsOf(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-[#F4F2FB] border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] focus:outline-none focus:border-[#1DE9C0]"
                 />
-                <span className="text-[10px] text-slate-500 mt-1 block">
+                <span className="text-[10px] text-[#8F7FA8] mt-1 block">
                   Leave blank to score against latest flight telemetry date.
                 </span>
               </div>
 
               <div>
-                <label className="block text-slate-400 mb-1">Target Airframe (Optional)</label>
+                <label className="block text-[#6B5B84] mb-1 font-semibold">Target Airframe (Optional)</label>
                 <select
                   value={engineAircraft}
                   onChange={(e) => setEngineAircraft(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white focus:outline-none focus:border-cyan-500 cursor-pointer"
+                  className="w-full bg-[#F4F2FB] border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] focus:outline-none focus:border-[#1DE9C0] cursor-pointer"
                 >
-                  <option value="">Full Fleet (All 40 Airframes)</option>
+                  <option value="">Full Fleet (All Airframes)</option>
                   {aircraftData?.items.map((ac) => (
                     <option key={ac.aircraft_id} value={ac.aircraft_id}>
                       {ac.tail_code} ({ac.type_code})
@@ -760,32 +759,32 @@ export const PredictiveQueuePage: React.FC = () => {
 
               {/* Execution Summary Report */}
               {engineResult && (
-                <div className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-lg space-y-1.5 text-[11px] text-emerald-300">
-                  <div className="font-bold flex items-center gap-1.5 text-white">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                <div className="p-3.5 bg-[#E6FCF7] border border-[#1DE9C0]/50 rounded-[12px] space-y-1.5 text-[11px] text-[#0D6553] shadow-sm">
+                  <div className="font-bold flex items-center gap-1.5 text-[#0D6553]">
+                    <CheckCircle className="w-4 h-4 text-[#0D6553]" />
                     Engine Run Complete ({engineResult.duration_seconds.toFixed(2)}s)
                   </div>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 text-slate-300">
-                    <div>Components Scored: <strong className="text-white">{engineResult.components_scored}</strong></div>
-                    <div>Predictions Logged: <strong className="text-white">{engineResult.predictions_recorded}</strong></div>
-                    <div>Advisories Raised: <strong className="text-white">{engineResult.advisories_generated}</strong></div>
-                    <div>P1 / P2 Critical: <strong className="text-rose-400">{engineResult.p1_count} / {engineResult.p2_count}</strong></div>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 text-[#3B1D5E]">
+                    <div>Components Scored: <strong>{engineResult.components_scored}</strong></div>
+                    <div>Predictions Logged: <strong>{engineResult.predictions_recorded}</strong></div>
+                    <div>Advisories Raised: <strong>{engineResult.advisories_generated}</strong></div>
+                    <div>P1 / P2 Critical: <strong className="text-[#DC2626]">{engineResult.p1_count} / {engineResult.p2_count}</strong></div>
                   </div>
                 </div>
               )}
 
-              <div className="flex justify-end space-x-2 pt-2 border-t border-slate-800">
+              <div className="flex justify-end space-x-2 pt-2 border-t border-[#E6E2F0]">
                 <button
                   type="button"
                   onClick={() => setEngineModalOpen(false)}
-                  className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-semibold"
+                  className="px-3.5 py-1.5 bg-[#F4F2FB] hover:bg-white text-[#6B5B84] rounded-[8px] font-semibold border border-[#E6E2F0]"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
                   disabled={runEngineMutation.isPending}
-                  className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded font-semibold flex items-center gap-1.5"
+                  className="px-4 py-1.5 bg-[#1DE9C0] hover:bg-[#15d1ac] disabled:opacity-50 text-[#1E1035] rounded-[8px] font-bold flex items-center gap-1.5 shadow-ap-mint"
                 >
                   {runEngineMutation.isPending ? 'Scoring Fleet...' : 'Run Scoring Job'}
                 </button>

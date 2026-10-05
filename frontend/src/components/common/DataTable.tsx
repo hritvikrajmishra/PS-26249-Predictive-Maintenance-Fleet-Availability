@@ -25,6 +25,8 @@ interface DataTableProps<T> {
     pageSize: number;
     onPageChange: (page: number) => void;
   };
+  maxHeight?: string;
+  className?: string;
 }
 
 export function DataTable<T extends object>({
@@ -35,6 +37,8 @@ export function DataTable<T extends object>({
   emptyMessage,
   onRowClick,
   pagination,
+  maxHeight,
+  className = '',
 }: DataTableProps<T>): React.JSX.Element {
   if (loading) {
     return <LoadingSkeleton rows={5} />;
@@ -45,16 +49,23 @@ export function DataTable<T extends object>({
   }
 
   return (
-    <div className="w-full flex flex-col space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-[#0c1220]/80 shadow-md">
+    <div className={`w-full flex flex-col space-y-3 ${className}`}>
+      <div
+        className="overflow-x-auto rounded-[20px] border border-[#E6E2F0] bg-white shadow-ap-card"
+        style={maxHeight ? { maxHeight, overflowY: 'auto' } : undefined}
+      >
         <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="border-b border-slate-800 bg-[#090e1a]/90 text-slate-400 font-mono uppercase text-[11px] tracking-wider select-none">
+          <thead className="sticky top-0 z-10 bg-[#F4F2FB]">
+            <tr className="border-b border-[#E6E2F0] text-[#6B5B84] uppercase text-[11px] font-semibold tracking-wider select-none">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
-                  className={`py-3 px-4 font-semibold ${
-                    col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
+                  className={`py-3.5 px-4 ${
+                    col.align === 'right'
+                      ? 'text-right'
+                      : col.align === 'center'
+                      ? 'text-center'
+                      : 'text-left'
                   } ${col.className || ''}`}
                 >
                   {col.header}
@@ -62,22 +73,26 @@ export function DataTable<T extends object>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-mono text-slate-200">
+          <tbody className="divide-y divide-[#EDE9F5] font-mono text-[#3B1D5E]">
             {data.map((row, rowIdx) => (
               <tr
                 key={rowIdx}
                 onClick={() => onRowClick && onRowClick(row)}
-                className={`transition-colors duration-150 ${
+                className={`transition-all duration-150 ${
                   onRowClick
-                    ? 'cursor-pointer hover:bg-blue-600/10 hover:text-white'
-                    : 'hover:bg-slate-800/30'
+                    ? 'cursor-pointer hover:bg-[#FBF9FE]'
+                    : 'hover:bg-[#FBF9FE]/60'
                 }`}
               >
                 {columns.map((col, colIdx) => (
                   <td
                     key={colIdx}
-                    className={`py-3 px-4 ${
-                      col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
+                    className={`py-3.5 px-4 ${
+                      col.align === 'right'
+                        ? 'text-right'
+                        : col.align === 'center'
+                        ? 'text-center'
+                        : 'text-left'
                     } ${col.className || ''}`}
                   >
                     {col.render
@@ -94,27 +109,27 @@ export function DataTable<T extends object>({
       </div>
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 text-xs font-mono text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-2 text-xs font-mono text-[#6B5B84]">
           <div>
-            Showing page <span className="font-semibold text-slate-200">{pagination.currentPage}</span> of{' '}
-            <span className="font-semibold text-slate-200">{pagination.totalPages}</span> ({pagination.totalItems} items)
+            Showing page <span className="font-bold text-[#3B1D5E]">{pagination.currentPage}</span> of{' '}
+            <span className="font-bold text-[#3B1D5E]">{pagination.totalPages}</span> ({pagination.totalItems} items)
           </div>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1.5">
             <button
               onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
               disabled={pagination.currentPage <= 1}
-              className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition"
+              className="p-1.5 rounded-[10px] border border-[#E6E2F0] bg-white hover:bg-[#F4F2FB] text-[#6B5B84] hover:text-[#3B1D5E] disabled:opacity-30 disabled:pointer-events-none transition shadow-sm"
               title="Previous Page"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-2 py-1 font-semibold text-slate-200 bg-slate-800/80 rounded border border-slate-700">
+            <span className="px-3 py-1 font-bold text-[#059669] bg-[#E6FCF7] rounded-[10px] border border-[#A3F5E4]">
               {pagination.currentPage}
             </span>
             <button
               onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
               disabled={pagination.currentPage >= pagination.totalPages}
-              className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition"
+              className="p-1.5 rounded-[10px] border border-[#E6E2F0] bg-white hover:bg-[#F4F2FB] text-[#6B5B84] hover:text-[#3B1D5E] disabled:opacity-30 disabled:pointer-events-none transition shadow-sm"
               title="Next Page"
             >
               <ChevronRight className="w-4 h-4" />

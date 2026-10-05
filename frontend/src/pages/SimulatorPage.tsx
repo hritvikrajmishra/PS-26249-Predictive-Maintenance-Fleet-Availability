@@ -17,6 +17,7 @@ import {
   History,
 } from 'lucide-react';
 import { KpiCard } from '../components/common/KpiCard';
+import { SectionContainer } from '../components/common/SectionContainer';
 import { LoadingSkeleton } from '../components/feedback/LoadingSkeleton';
 import { EmptyState } from '../components/feedback/EmptyState';
 import { useAuth } from '../hooks/useAuth';
@@ -26,7 +27,7 @@ import {
 } from '../hooks/useAvailabilityQueries';
 import { useAircraftList } from '../hooks/useFleetQueries';
 import { useSpareParts } from '../hooks/useSparesQueries';
-import type { DailyTrendPoint, ScenarioRunOut } from '../types/api';
+import type { ScenarioRunOut } from '../types/api';
 
 type ScenarioType =
   | 'schedule_maintenance'
@@ -49,6 +50,21 @@ interface ScenarioComparisonItem {
   stockout_prob: number;
   by_cause_delta: Record<string, number>;
 }
+
+const formatScenarioType = (type: string) => {
+  switch (type) {
+    case 'early_vs_run_to_failure':
+      return 'Proactive Replacement vs RTF';
+    case 'spare_unavailable':
+      return 'Supply Shortfall & Stockout Stress';
+    case 'schedule_maintenance':
+      return 'Scheduled Bay Maintenance';
+    case 'extra_capacity':
+      return 'Bay Capacity Expansion';
+    default:
+      return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+};
 
 export const SimulatorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -151,7 +167,6 @@ export const SimulatorPage: React.FC = () => {
     e.preventDefault();
     setValidationError(null);
 
-    // Form validations
     if (horizonDays < 7 || horizonDays > 90) {
       setValidationError('Horizon must be configured between 7 and 90 days.');
       return;
@@ -272,7 +287,7 @@ export const SimulatorPage: React.FC = () => {
       setActiveResult(resProactive);
       setActiveTab('compare');
     } catch (err: unknown) {
-      setValidationError(err instanceof Error ? err.message : 'Failed to run Demo Triad');
+      setValidationError(err instanceof Error ? err.message : 'Failed to run policy benchmark');
     } finally {
       setRunningTriad(false);
     }
@@ -281,77 +296,76 @@ export const SimulatorPage: React.FC = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. Header & Navigation */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-cyan-600/20 border border-cyan-500/40 rounded-xl text-cyan-400">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E2F0] pb-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-2.5 bg-[#E0F8FA] border border-[#BAE6FD] rounded-[12px] text-[#0D6553] shadow-sm">
             <Sliders className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold font-mono text-white tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-[#3B1D5E] tracking-tight">
               Scenario Simulator (What-If Engine)
             </h1>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Seeded dual-leg Monte Carlo discrete-event availability simulation (§7, §9 & §10)
+            <p className="text-xs text-[#6B5B84] mt-0.5">
+              Comparative fleet availability & readiness policy simulation
             </p>
           </div>
         </div>
 
         {/* Action Controls & Tab Toggle */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* 1-Click Standard Demo Triad Button */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleRunDemoTriad}
             disabled={!canSimulate || runningTriad || runScenarioMutation.isPending}
-            className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white rounded-lg font-mono text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-cyan-900/30 transition"
-            title="Run standard 3-way comparison triad: Baseline vs Proactive vs Spare Outage"
+            className="px-3.5 py-1.5 bg-[#1DE9C0] hover:bg-[#15d1ac] disabled:opacity-50 text-[#1E1035] rounded-[10px] text-xs font-bold flex items-center space-x-1.5 shadow-ap-mint transition"
+            title="Run 3-way policy comparison: Nominal Baseline vs Proactive Replacement vs Supply Shortfall"
           >
-            <Layers className="w-3.5 h-3.5 text-cyan-200" />
+            <Layers className="w-3.5 h-3.5 text-[#1E1035]" />
             <span>
-              {runningTriad ? 'Simulating Triad (300 runs)...' : 'Run Standard Demo Triad (§10 Step 10)'}
+              {runningTriad ? 'Simulating Policy Benchmark...' : 'Run Benchmark Policy Comparison'}
             </span>
           </button>
 
           {/* Tab Controls */}
-          <div className="flex items-center space-x-1 bg-slate-900 border border-slate-700/80 rounded-lg p-1 text-xs font-mono">
-          <button
-            onClick={() => setActiveTab('simulator')}
-            className={`px-3 py-1.5 rounded font-semibold transition ${
-              activeTab === 'simulator'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Run Simulator
-          </button>
-          <button
-            onClick={() => setActiveTab('compare')}
-            className={`px-3 py-1.5 rounded font-semibold transition flex items-center space-x-1.5 ${
-              activeTab === 'compare'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>Compare ({pinnedScenarios.length}/3)</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`px-3 py-1.5 rounded font-semibold transition flex items-center space-x-1.5 ${
-              activeTab === 'history'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <History className="w-3.5 h-3.5" />
-            <span>Audit History</span>
-          </button>
+          <div className="flex items-center space-x-1 bg-white border border-[#E6E2F0] rounded-[10px] p-1 text-xs shadow-sm">
+            <button
+              onClick={() => setActiveTab('simulator')}
+              className={`px-3 py-1.5 rounded-[8px] font-bold transition ${
+                activeTab === 'simulator'
+                  ? 'bg-[#1DE9C0] text-[#1E1035] shadow-sm'
+                  : 'text-[#6B5B84] hover:text-[#3B1D5E]'
+              }`}
+            >
+              Run Simulator
+            </button>
+            <button
+              onClick={() => setActiveTab('compare')}
+              className={`px-3 py-1.5 rounded-[8px] font-bold transition flex items-center space-x-1.5 ${
+                activeTab === 'compare'
+                  ? 'bg-[#1DE9C0] text-[#1E1035] shadow-sm'
+                  : 'text-[#6B5B84] hover:text-[#3B1D5E]'
+              }`}
+            >
+              <span>Compare ({pinnedScenarios.length}/3)</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-3 py-1.5 rounded-[8px] font-bold transition flex items-center space-x-1.5 ${
+                activeTab === 'history'
+                  ? 'bg-[#1DE9C0] text-[#1E1035] shadow-sm'
+                  : 'text-[#6B5B84] hover:text-[#3B1D5E]'
+              }`}
+            >
+              <History className="w-3.5 h-3.5" />
+              <span>Audit History</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
       {/* Validation or Error Message */}
       {validationError && (
-        <div className="p-3.5 bg-rose-950/70 border border-rose-500/50 rounded-xl text-rose-300 text-xs font-mono flex items-center space-x-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="p-3.5 bg-[#FEF2F2] border border-[#FCA5A5] rounded-[12px] text-[#DC2626] text-xs flex items-center space-x-2 shadow-sm">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-[#DC2626]" />
           <span>{validationError}</span>
         </div>
       )}
@@ -360,313 +374,313 @@ export const SimulatorPage: React.FC = () => {
       {activeTab === 'simulator' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column: Configuration Form (5 cols) */}
-          <div className="lg:col-span-5 bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <span className="font-bold text-white uppercase flex items-center gap-1.5">
-                <Wrench className="w-4 h-4 text-cyan-400" />
-                Scenario Parameters
-              </span>
-              <span className="text-[10px] text-slate-500">4 Policy Types</span>
-            </div>
+          <div className="lg:col-span-5">
+            <SectionContainer
+              title="Scenario Policy Configuration"
+              subtitle="Select what-if maintenance, supply, or capacity policy"
+              icon={<Wrench className="w-4 h-4 text-[#0D6553]" />}
+            >
+              <form onSubmit={handleExecuteSimulation} className="space-y-4 text-xs">
+                {/* Scenario Type Selection */}
+                <div>
+                  <label className="block text-[#6B5B84] mb-1.5 font-bold uppercase text-[10px]">
+                    Select Policy Type
+                  </label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      {
+                        id: 'early_vs_run_to_failure',
+                        label: 'Proactive Early vs Run-to-Failure',
+                        desc: 'Compare replacement before wear failure vs unscheduled repair',
+                      },
+                      {
+                        id: 'schedule_maintenance',
+                        label: 'Schedule Planned Maintenance',
+                        desc: 'Reserve a specific airframe servicing window',
+                      },
+                      {
+                        id: 'spare_unavailable',
+                        label: 'Spare Stockout / Supply Delays',
+                        desc: 'Simulate critical part stockout and supplier delivery lag',
+                      },
+                      {
+                        id: 'extra_capacity',
+                        label: 'Workshop Bay Capacity Expansion',
+                        desc: 'Evaluate adding repair bays / extra maintenance shifts',
+                      },
+                    ].map((item) => (
+                      <label
+                        key={item.id}
+                        className={`flex items-start space-x-2.5 p-3 rounded-[12px] border cursor-pointer transition ${
+                          scenarioType === item.id
+                            ? 'bg-[#E6FCF7] border-[#1DE9C0] text-[#3B1D5E] shadow-sm'
+                            : 'bg-[#F4F2FB] border-[#E6E2F0] text-[#6B5B84] hover:bg-white hover:border-[#1DE9C0]'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="scenarioType"
+                          value={item.id}
+                          checked={scenarioType === item.id}
+                          onChange={() => setScenarioType(item.id as ScenarioType)}
+                          className="mt-0.5 text-[#0D6553] focus:ring-0"
+                        />
+                        <div>
+                          <div className="font-bold text-[#3B1D5E] text-xs">{item.label}</div>
+                          <div className="text-[11px] text-[#6B5B84] leading-tight mt-0.5">
+                            {item.desc}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-            <form onSubmit={handleExecuteSimulation} className="space-y-4">
-              {/* Scenario Type Selection */}
-              <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Select Policy Type</label>
-                <div className="grid grid-cols-1 gap-1.5">
-                  {[
-                    {
-                      id: 'early_vs_run_to_failure',
-                      label: 'Proactive Early vs Run-to-Failure',
-                      desc: 'Compare replacement before wear failure vs unscheduled repair',
-                    },
-                    {
-                      id: 'schedule_maintenance',
-                      label: 'Schedule Planned Maintenance',
-                      desc: 'Reserve a specific airframe servicing window',
-                    },
-                    {
-                      id: 'spare_unavailable',
-                      label: 'Spare Stockout / Supply Delays',
-                      desc: 'Simulate critical part stockout and supplier delivery lag',
-                    },
-                    {
-                      id: 'extra_capacity',
-                      label: 'Workshop Bay Capacity Expansion',
-                      desc: 'Evaluate adding repair bays / extra maintenance shifts',
-                    },
-                  ].map((item) => (
-                    <label
-                      key={item.id}
-                      className={`flex items-start space-x-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
-                        scenarioType === item.id
-                          ? 'bg-blue-950/60 border-blue-500/80 text-white'
-                          : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="scenarioType"
-                        value={item.id}
-                        checked={scenarioType === item.id}
-                        onChange={() => setScenarioType(item.id as ScenarioType)}
-                        className="mt-0.5 text-blue-600 focus:ring-0"
-                      />
+                {/* Dynamic Parameter Fields */}
+                <div className="p-3.5 bg-[#F4F2FB] border border-[#E6E2F0] rounded-[14px] space-y-3">
+                  {scenarioType === 'early_vs_run_to_failure' && (
+                    <>
                       <div>
-                        <div className="font-bold text-slate-200">{item.label}</div>
-                        <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
-                          {item.desc}
+                        <label className="block text-[#6B5B84] mb-1 font-semibold">Target Airframe</label>
+                        <select
+                          value={earlyAircraft}
+                          onChange={(e) => setEarlyAircraft(e.target.value)}
+                          className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold font-mono focus:outline-none focus:border-[#1DE9C0]"
+                        >
+                          {aircraftList.map((ac) => (
+                            <option key={ac.aircraft_id} value={ac.aircraft_id}>
+                              {ac.tail_code} ({ac.current_status})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[#6B5B84] mb-1 font-semibold">Proactive Day</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={30}
+                            value={earlyReplaceDay}
+                            onChange={(e) => setEarlyReplaceDay(Number(e.target.value))}
+                            className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[#6B5B84] mb-1 font-semibold">Duration (Days)</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={earlyDurationDays}
+                            onChange={(e) => setEarlyDurationDays(Number(e.target.value))}
+                            className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                          />
                         </div>
                       </div>
-                    </label>
-                  ))}
+                    </>
+                  )}
+
+                  {scenarioType === 'schedule_maintenance' && (
+                    <>
+                      <div>
+                        <label className="block text-[#6B5B84] mb-1 font-semibold">Target Airframe</label>
+                        <select
+                          value={schedAircraft}
+                          onChange={(e) => setSchedAircraft(e.target.value)}
+                          className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold font-mono focus:outline-none focus:border-[#1DE9C0]"
+                        >
+                          {aircraftList.map((ac) => (
+                            <option key={ac.aircraft_id} value={ac.aircraft_id}>
+                              {ac.tail_code} ({ac.current_status})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[#6B5B84] mb-1 font-semibold">Planned Start (Day)</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={60}
+                            value={schedStartDay}
+                            onChange={(e) => setSchedStartDay(Number(e.target.value))}
+                            className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[#6B5B84] mb-1 font-semibold">Service Duration (Days)</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={14}
+                            value={schedDurationDays}
+                            onChange={(e) => setSchedDurationDays(Number(e.target.value))}
+                            className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {scenarioType === 'spare_unavailable' && (
+                    <>
+                      <div>
+                        <label className="block text-[#6B5B84] mb-1 font-semibold">Critical Part Number</label>
+                        <select
+                          value={sparePartNumber}
+                          onChange={(e) => setSparePartNumber(e.target.value)}
+                          className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold font-mono focus:outline-none focus:border-[#1DE9C0]"
+                        >
+                          {partsList.map((p) => (
+                            <option key={p.part_number} value={p.part_number}>
+                              {p.part_number} — {p.description.slice(0, 30)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[#6B5B84] mb-1 font-semibold">Simulated Stock</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={20}
+                            value={spareStockOverride}
+                            onChange={(e) => setSpareStockOverride(Number(e.target.value))}
+                            className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[#6B5B84] mb-1 font-semibold">Lead Time Delay (Days)</label>
+                          <input
+                            type="number"
+                            min={5}
+                            max={90}
+                            value={spareLeadTimeDays}
+                            onChange={(e) => setSpareLeadTimeDays(Number(e.target.value))}
+                            className="w-full bg-white border border-[#E6E2F0] rounded-[10px] p-2 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {scenarioType === 'extra_capacity' && (
+                    <div>
+                      <label className="block text-[#6B5B84] mb-1 font-semibold">Additional Workshop Bays</label>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="range"
+                          min={1}
+                          max={6}
+                          value={bayIncrease}
+                          onChange={(e) => setBayIncrease(Number(e.target.value))}
+                          className="w-full accent-[#0D6553] cursor-pointer"
+                        />
+                        <span className="font-bold text-[#3B1D5E] text-sm w-16 text-right font-mono">
+                          +{bayIncrease} Bays
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Dynamic Parameter Fields */}
-              <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-lg space-y-3">
-                {scenarioType === 'early_vs_run_to_failure' && (
-                  <>
-                    <div>
-                      <label className="block text-slate-400 mb-1">Target Airframe</label>
-                      <select
-                        value={earlyAircraft}
-                        onChange={(e) => setEarlyAircraft(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                      >
-                        {aircraftList.map((ac) => (
-                          <option key={ac.aircraft_id} value={ac.aircraft_id}>
-                            {ac.tail_code} ({ac.current_status})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-slate-400 mb-1">Proactive Day</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={30}
-                          value={earlyReplaceDay}
-                          onChange={(e) => setEarlyReplaceDay(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-400 mb-1">Duration (Days)</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={10}
-                          value={earlyDurationDays}
-                          onChange={(e) => setEarlyDurationDays(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {scenarioType === 'schedule_maintenance' && (
-                  <>
-                    <div>
-                      <label className="block text-slate-400 mb-1">Target Airframe</label>
-                      <select
-                        value={schedAircraft}
-                        onChange={(e) => setSchedAircraft(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                      >
-                        {aircraftList.map((ac) => (
-                          <option key={ac.aircraft_id} value={ac.aircraft_id}>
-                            {ac.tail_code} ({ac.current_status})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-slate-400 mb-1">Planned Start (Day)</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={60}
-                          value={schedStartDay}
-                          onChange={(e) => setSchedStartDay(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-400 mb-1">Service Duration (Days)</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={14}
-                          value={schedDurationDays}
-                          onChange={(e) => setSchedDurationDays(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {scenarioType === 'spare_unavailable' && (
-                  <>
-                    <div>
-                      <label className="block text-slate-400 mb-1">Critical Part Number</label>
-                      <select
-                        value={sparePartNumber}
-                        onChange={(e) => setSparePartNumber(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                      >
-                        {partsList.map((p) => (
-                          <option key={p.part_number} value={p.part_number}>
-                            {p.part_number} — {p.description.slice(0, 30)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-slate-400 mb-1">Simulated Stock</label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={20}
-                          value={spareStockOverride}
-                          onChange={(e) => setSpareStockOverride(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-slate-400 mb-1">Lead Time Delay (Days)</label>
-                        <input
-                          type="number"
-                          min={5}
-                          max={90}
-                          value={spareLeadTimeDays}
-                          onChange={(e) => setSpareLeadTimeDays(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {scenarioType === 'extra_capacity' && (
+                {/* Simulation Global Engine Parameters */}
+                <div className="grid grid-cols-3 gap-2.5 pt-1">
                   <div>
-                    <label className="block text-slate-400 mb-1">Additional Workshop Bays</label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="range"
-                        min={1}
-                        max={6}
-                        value={bayIncrease}
-                        onChange={(e) => setBayIncrease(Number(e.target.value))}
-                        className="w-full accent-blue-500 cursor-pointer"
-                      />
-                      <span className="font-bold text-white text-sm w-12 text-right">
-                        +{bayIncrease} Bays
-                      </span>
-                    </div>
+                    <label className="block text-[#6B5B84] text-[10px] mb-1 uppercase font-bold">
+                      Horizon (7–90d)
+                    </label>
+                    <input
+                      type="number"
+                      min={7}
+                      max={90}
+                      value={horizonDays}
+                      onChange={(e) => setHorizonDays(Number(e.target.value))}
+                      className="w-full bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] p-1.5 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                    />
                   </div>
-                )}
-              </div>
 
-              {/* Simulation Global Engine Parameters */}
-              <div className="grid grid-cols-3 gap-2.5 pt-1">
-                <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">
-                    Horizon (7–90d)
-                  </label>
-                  <input
-                    type="number"
-                    min={7}
-                    max={90}
-                    value={horizonDays}
-                    onChange={(e) => setHorizonDays(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white focus:outline-none"
-                  />
+                  <div>
+                    <label className="block text-[#6B5B84] text-[10px] mb-1 uppercase font-bold">
+                      Runs (50–500)
+                    </label>
+                    <input
+                      type="number"
+                      min={50}
+                      max={500}
+                      step={25}
+                      value={simulationRuns}
+                      onChange={(e) => setSimulationRuns(Number(e.target.value))}
+                      className="w-full bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] p-1.5 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[#6B5B84] text-[10px] mb-1 uppercase font-bold">
+                      Seed Key
+                    </label>
+                    <input
+                      type="number"
+                      value={randomSeed}
+                      onChange={(e) => setRandomSeed(Number(e.target.value))}
+                      className="w-full bg-[#F4F2FB] border border-[#E6E2F0] rounded-[8px] p-1.5 text-[#3B1D5E] font-bold focus:outline-none focus:border-[#1DE9C0]"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">
-                    Runs (50–500)
-                  </label>
-                  <input
-                    type="number"
-                    min={50}
-                    max={500}
-                    step={25}
-                    value={simulationRuns}
-                    onChange={(e) => setSimulationRuns(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">
-                    RNG Seed
-                  </label>
-                  <input
-                    type="number"
-                    value={randomSeed}
-                    onChange={(e) => setRandomSeed(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={!canSimulate || runScenarioMutation.isPending}
-                className="w-full py-2.5 bg-gradient-to-r from-blue-600 via-cyan-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold flex items-center justify-center space-x-2 transition shadow-lg shadow-cyan-900/30"
-              >
-                {runScenarioMutation.isPending ? (
-                  <>
-                    <RotateCcw className="w-4 h-4 animate-spin" />
-                    <span>Executing {simulationRuns} Monte Carlo Runs...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 fill-white" />
-                    <span>Run What-If Simulation</span>
-                  </>
-                )}
-              </button>
-            </form>
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={!canSimulate || runScenarioMutation.isPending}
+                  className="w-full py-3 bg-[#1DE9C0] hover:bg-[#15d1ac] disabled:opacity-50 text-[#1E1035] rounded-[10px] font-bold flex items-center justify-center space-x-2 transition shadow-ap-mint text-xs"
+                >
+                  {runScenarioMutation.isPending ? (
+                    <>
+                      <RotateCcw className="w-4 h-4 animate-spin text-[#1E1035]" />
+                      <span>Executing {simulationRuns} Trajectories...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 fill-current" />
+                      <span>Run What-If Simulation</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </SectionContainer>
           </div>
 
           {/* Right Column: Simulation Output Dashboard (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
             {runScenarioMutation.isPending ? (
-              <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-8 text-center font-mono space-y-4">
-                <RotateCcw className="w-8 h-8 animate-spin text-cyan-400 mx-auto" />
+              <div className="bg-white border border-[#E6E2F0] rounded-[20px] p-8 text-center space-y-4 shadow-ap-card">
+                <RotateCcw className="w-8 h-8 animate-spin text-[#0D6553] mx-auto" />
                 <div>
-                  <h3 className="text-white font-bold text-sm">
-                    Simulating {simulationRuns} Parallel Monte Carlo Trajectories
+                  <h3 className="text-[#3B1D5E] font-bold text-sm">
+                    Simulating {simulationRuns} Parallel Trajectories
                   </h3>
-                  <p className="text-slate-400 text-xs mt-1">
-                    Executing dual-leg discrete event simulation over a {horizonDays}-day horizon...
+                  <p className="text-[#6B5B84] text-xs mt-1">
+                    Evaluating policy counterfactuals over a {horizonDays}-day operational horizon...
                   </p>
                 </div>
-                <div className="max-w-xs mx-auto bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                  <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-2/3 animate-pulse" />
+                <div className="max-w-xs mx-auto bg-[#F4F2FB] h-2 rounded-full overflow-hidden border border-[#E6E2F0]">
+                  <div className="bg-[#1DE9C0] h-full w-2/3 animate-pulse" />
                 </div>
               </div>
             ) : !activeResult ? (
-              <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-12 text-center font-mono space-y-3">
-                <Sliders className="w-10 h-10 text-slate-600 mx-auto" />
-                <h3 className="text-slate-300 font-bold text-sm">Ready for Simulation</h3>
-                <p className="text-slate-500 text-xs max-w-md mx-auto">
+              <div className="bg-white border border-[#E6E2F0] rounded-[20px] p-12 text-center space-y-3 shadow-ap-card">
+                <Sliders className="w-10 h-10 text-[#8F7FA8] mx-auto" />
+                <h3 className="text-[#3B1D5E] font-bold text-sm">Ready for Simulation</h3>
+                <p className="text-[#6B5B84] text-xs max-w-md mx-auto leading-relaxed">
                   Configure the scenario policy on the left and click &quot;Run What-If Simulation&quot; to compute
                   availability trajectory curves, confidence bands, and aircraft-days delta.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4 font-mono">
+              <div className="space-y-4">
                 {/* 1. Delta Metrics Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <KpiCard
@@ -693,7 +707,7 @@ export const SimulatorPage: React.FC = () => {
                   />
 
                   <KpiCard
-                    title="Aircraft-Days Lost Delta"
+                    title="Days Lost Delta"
                     value={`${activeResult.delta.aircraft_days_lost >= 0 ? '+' : ''}${
                       activeResult.delta.aircraft_days_lost
                     }d`}
@@ -727,49 +741,42 @@ export const SimulatorPage: React.FC = () => {
                   />
                 </div>
 
-                {/* 2. Interactive Availability Trajectory Chart (Baseline vs Scenario with Bands) */}
-                <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-                    <div>
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-cyan-400" />
-                        Fleet Availability Projection (Baseline vs. Scenario)
-                      </h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        P50 trajectory lines with P10–P90 Monte Carlo confidence envelope bands
-                      </p>
-                    </div>
-
+                {/* 2. Interactive Availability Trajectory Chart */}
+                <SectionContainer
+                  title="Fleet Availability Projection (Baseline vs. Scenario)"
+                  subtitle="P50 trajectory lines with P10–P90 confidence envelope bands"
+                  icon={<TrendingUp className="w-4 h-4 text-[#0D6553]" />}
+                  actions={
                     <button
                       onClick={handlePinScenario}
-                      className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition shadow"
+                      className="px-3 py-1.5 rounded-[8px] bg-[#E0F8FA] hover:bg-[#1DE9C0] text-[#0D6553] hover:text-[#1E1035] text-xs font-bold flex items-center space-x-1.5 transition shadow-sm border border-[#1DE9C0]/40"
                     >
                       <BookmarkPlus className="w-3.5 h-3.5" />
                       <span>Pin for Comparison</span>
                     </button>
-                  </div>
-
+                  }
+                >
                   <ScenarioTrendChart result={activeResult} />
-                </div>
+                </SectionContainer>
 
                 {/* 3. Downtime Cause Delta Breakdown */}
-                <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 text-xs">
-                  <div className="flex items-center justify-between text-slate-300">
-                    <span className="font-semibold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-blue-400" />
+                <div className="bg-white border border-[#E6E2F0] rounded-[20px] p-4 sm:p-5 shadow-ap-card space-y-3 text-xs">
+                  <div className="flex items-center justify-between text-[#6B5B84] border-b border-[#E6E2F0] pb-2.5">
+                    <span className="font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-[#3B1D5E]">
+                      <Layers className="w-4 h-4 text-[#0D6553]" />
                       Downtime Impact Breakdown by Cause (Days Delta)
                     </span>
-                    <span className="text-slate-500 text-[10px]">Net Fleet Days</span>
+                    <span className="text-[#8F7FA8] text-[10px]">Net Fleet Days</span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Scheduled Servicing</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+                    <div className="p-3 bg-[#F4F2FB] rounded-[12px] border border-[#E6E2F0]">
+                      <div className="text-[10px] text-[#6B5B84] font-semibold">Scheduled Servicing</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-base font-bold font-mono mt-1 ${
                           (activeResult.by_cause.scheduled || 0) > 0
-                            ? 'text-amber-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#D97706]'
+                            : 'text-[#059669]'
                         }`}
                       >
                         {(activeResult.by_cause.scheduled || 0) >= 0 ? '+' : ''}
@@ -777,13 +784,13 @@ export const SimulatorPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Unscheduled Repairs</div>
+                    <div className="p-3 bg-[#F4F2FB] rounded-[12px] border border-[#E6E2F0]">
+                      <div className="text-[10px] text-[#6B5B84] font-semibold">Unscheduled Repairs</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-base font-bold font-mono mt-1 ${
                           (activeResult.by_cause.unscheduled || 0) > 0
-                            ? 'text-rose-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#DC2626]'
+                            : 'text-[#059669]'
                         }`}
                       >
                         {(activeResult.by_cause.unscheduled || 0) >= 0 ? '+' : ''}
@@ -791,13 +798,13 @@ export const SimulatorPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Supply Wait Grounding</div>
+                    <div className="p-3 bg-[#F4F2FB] rounded-[12px] border border-[#E6E2F0]">
+                      <div className="text-[10px] text-[#6B5B84] font-semibold">Supply Wait Grounding</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-base font-bold font-mono mt-1 ${
                           (activeResult.by_cause.supply_wait || 0) > 0
-                            ? 'text-rose-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#DC2626]'
+                            : 'text-[#059669]'
                         }`}
                       >
                         {(activeResult.by_cause.supply_wait || 0) >= 0 ? '+' : ''}
@@ -805,13 +812,13 @@ export const SimulatorPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Workshop Bay Queue</div>
+                    <div className="p-3 bg-[#F4F2FB] rounded-[12px] border border-[#E6E2F0]">
+                      <div className="text-[10px] text-[#6B5B84] font-semibold">Agency Queue Wait</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-base font-bold font-mono mt-1 ${
                           (activeResult.by_cause.agency_wait || 0) > 0
-                            ? 'text-amber-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#DC2626]'
+                            : 'text-[#059669]'
                         }`}
                       >
                         {(activeResult.by_cause.agency_wait || 0) >= 0 ? '+' : ''}
@@ -826,208 +833,183 @@ export const SimulatorPage: React.FC = () => {
         </div>
       )}
 
-      {/* 3. TAB: SIDE-BY-SIDE COMPARISON (UP TO 3 SCENARIOS) */}
+      {/* 3. TAB: COMPARE (SIDE-BY-SIDE MATRIX) */}
       {activeTab === 'compare' && (
-        <div className="space-y-4 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div>
-              <h3 className="font-bold text-white uppercase text-sm">
-                Side-by-Side Policy Comparison ({pinnedScenarios.length}/3 Pinned)
-              </h3>
-              <p className="text-slate-400 text-[11px] mt-0.5">
-                Evaluate trade-offs between proactive replacement, run-to-failure, and workshop capacity
-              </p>
-            </div>
-            {pinnedScenarios.length > 0 && (
+        <SectionContainer
+          title="Multi-Scenario Comparative Decision Matrix"
+          subtitle="Side-by-side evaluation of up to 3 simulation runs against baseline readiness"
+          icon={<Layers className="w-4 h-4 text-[#0D6553]" />}
+          actions={
+            pinnedScenarios.length > 0 ? (
               <button
                 onClick={() => setPinnedScenarios([])}
-                className="text-rose-400 hover:text-rose-300 text-xs flex items-center space-x-1"
+                className="px-2.5 py-1 rounded-[8px] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] text-xs font-bold flex items-center space-x-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Clear All Pinned</span>
+                <span>Clear All</span>
               </button>
-            )}
-          </div>
-
+            ) : undefined
+          }
+        >
           {pinnedScenarios.length === 0 ? (
-            <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-12 text-center space-y-3">
-              <BookmarkPlus className="w-10 h-10 text-slate-600 mx-auto" />
-              <h4 className="text-white font-bold text-sm">No Scenarios Pinned Yet</h4>
-              <p className="text-slate-400 text-xs max-w-md mx-auto">
-                Execute a what-if run in the &quot;Run Simulator&quot; tab and click &quot;Pin for Comparison&quot; to
-                place up to three policy alternatives side-by-side.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {pinnedScenarios.map((scen, idx) => (
-                <div
-                  key={scen.id}
-                  className="bg-[#0c1220]/90 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4 flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-[10px] text-cyan-400 uppercase font-bold tracking-wider">
-                          Option {idx + 1}
-                        </span>
-                        <h4 className="text-white font-bold text-sm mt-0.5">{scen.name}</h4>
-                        <div className="text-[10px] text-slate-400 font-mono">
-                          {scen.horizon_days}d horizon • {scen.runs} runs • Seed {scen.seed}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleUnpinScenario(scen.id)}
-                        className="text-slate-500 hover:text-rose-400 transition"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    {/* Parameters Details */}
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800 text-[11px] space-y-1">
-                      <div className="text-slate-400 font-semibold uppercase text-[10px]">
-                        Configuration:
-                      </div>
-                      {Object.entries(scen.params).map(([k, v]) => (
-                        <div key={k} className="flex justify-between text-slate-300">
-                          <span className="text-slate-500">{k}:</span>
-                          <span className="font-bold text-white">{String(v)}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Metric Rows */}
-                    <div className="space-y-2 pt-1">
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Availability (P50):</span>
-                        <span className="text-white font-bold">
-                          {(scen.scenario_p50 * 100).toFixed(1)}%{' '}
-                          <span className="text-[10px] text-slate-500 font-normal">
-                            (Base: {(scen.baseline_p50 * 100).toFixed(1)}%)
-                          </span>
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Net Delta:</span>
-                        <span
-                          className={`font-bold font-mono ${
-                            scen.avail_delta_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                          }`}
-                        >
-                          {scen.avail_delta_pct >= 0 ? '+' : ''}
-                          {scen.avail_delta_pct}% pts
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Lost Days Delta:</span>
-                        <span
-                          className={`font-bold font-mono ${
-                            scen.days_lost_delta <= 0 ? 'text-emerald-400' : 'text-rose-400'
-                          }`}
-                        >
-                          {scen.days_lost_delta >= 0 ? '+' : ''}
-                          {scen.days_lost_delta}d
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Stockout Risk:</span>
-                        <span
-                          className={`font-bold font-mono ${
-                            scen.stockout_prob <= 0.05 ? 'text-cyan-400' : 'text-amber-400'
-                          }`}
-                        >
-                          {(scen.stockout_prob * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <div className="text-[10px] text-slate-500 mb-1">Downtime Causes:</div>
-                    <div className="grid grid-cols-2 gap-1 text-[10px]">
-                      <span className="text-slate-400">
-                        Sched: {scen.by_cause_delta.scheduled || 0}d
-                      </span>
-                      <span className="text-slate-400">
-                        Unplanned: {scen.by_cause_delta.unscheduled || 0}d
-                      </span>
-                      <span className="text-slate-400">
-                        Supply: {scen.by_cause_delta.supply_wait || 0}d
-                      </span>
-                      <span className="text-slate-400">
-                        Bay Queue: {scen.by_cause_delta.agency_wait || 0}d
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 4. TAB: AUDIT HISTORY */}
-      {activeTab === 'history' && (
-        <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2 text-slate-200">
-              <History className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-sm uppercase">Persisted Simulation Runs (Audit Trail)</h3>
-            </div>
-            <span className="text-slate-400 text-[11px]">Database logs from scenario_runs</span>
-          </div>
-
-          {loadingHistory ? (
-            <LoadingSkeleton rows={5} />
-          ) : !scenarioHistory || scenarioHistory.length === 0 ? (
             <EmptyState
-              title="No Saved Scenarios"
-              message="No previous what-if simulation records found in database."
+              title="No Scenarios Pinned for Comparison"
+              message="Run a scenario in the Simulator tab and click 'Pin for Comparison' or click 'Run Benchmark Policy Comparison' above to view side-by-side policy trade-offs."
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
-                    <th className="py-2.5 px-3">Run ID</th>
-                    <th className="py-2.5 px-3">Policy Type</th>
-                    <th className="py-2.5 px-3">Executed At</th>
-                    <th className="py-2.5 px-3">Operator</th>
-                    <th className="py-2.5 px-3 text-right">RNG Seed</th>
+                  <tr className="border-b border-[#E6E2F0] bg-[#F4F2FB] text-[#6B5B84] uppercase text-[11px] font-semibold">
+                    <th className="py-3 px-4 w-48">Scenario Run</th>
+                    <th className="py-3 px-3 text-center">Horizon / Runs</th>
+                    <th className="py-3 px-3 text-right">Baseline (Ao)</th>
+                    <th className="py-3 px-3 text-right">Scenario (Ao)</th>
+                    <th className="py-3 px-3 text-right">Net Delta</th>
+                    <th className="py-3 px-3 text-right">Days Lost Delta</th>
+                    <th className="py-3 px-3 text-right">Stockout Risk</th>
+                    <th className="py-3 px-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                  {scenarioHistory.map((h) => (
-                    <tr key={h.id} className="hover:bg-slate-800/30 transition">
-                      <td className="py-2.5 px-3 font-mono font-bold text-cyan-300">{h.id}</td>
-                      <td className="py-2.5 px-3 uppercase text-[11px] font-semibold text-slate-200">
-                        {h.type}
+                <tbody className="divide-y divide-[#E6E2F0] text-[#3B1D5E]">
+                  {pinnedScenarios.map((item) => (
+                    <tr key={item.id} className="hover:bg-[#FBF9FE] transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-[#3B1D5E]">
+                        <div>{item.name}</div>
+                        <div className="text-[10px] text-[#8F7FA8] font-normal">{formatScenarioType(item.type)}</div>
                       </td>
-                      <td className="py-2.5 px-3 text-slate-400">
-                        {new Date(h.created_at).toLocaleString()}
+                      <td className="py-3.5 px-3 text-center text-[#6B5B84] font-mono">
+                        {item.horizon_days}d / {item.runs} runs
                       </td>
-                      <td className="py-2.5 px-3 text-slate-300 font-semibold">
-                        {h.created_by || 'planner'}
+                      <td className="py-3.5 px-3 text-right font-bold text-[#6B5B84] font-mono">
+                        {(item.baseline_p50 * 100).toFixed(1)}%
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono text-slate-400">{h.seed}</td>
+                      <td className="py-3.5 px-3 text-right font-bold text-[#3B1D5E] font-mono">
+                        {(item.scenario_p50 * 100).toFixed(1)}%
+                      </td>
+                      <td
+                        className={`py-3.5 px-3 text-right font-bold font-mono ${
+                          item.avail_delta_pct >= 0 ? 'text-[#059669]' : 'text-[#DC2626]'
+                        }`}
+                      >
+                        {item.avail_delta_pct >= 0 ? '+' : ''}
+                        {item.avail_delta_pct}%
+                      </td>
+                      <td
+                        className={`py-3.5 px-3 text-right font-bold font-mono ${
+                          item.days_lost_delta <= 0 ? 'text-[#059669]' : 'text-[#DC2626]'
+                        }`}
+                      >
+                        {item.days_lost_delta >= 0 ? '+' : ''}
+                        {item.days_lost_delta}d
+                      </td>
+                      <td className="py-3.5 px-3 text-right text-[#0D6553] font-bold font-mono">
+                        {(item.stockout_prob * 100).toFixed(1)}%
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        <button
+                          onClick={() => handleUnpinScenario(item.id)}
+                          className="p-1 rounded-[6px] text-[#8F7FA8] hover:text-[#DC2626] transition"
+                          title="Remove from comparison"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
+        </SectionContainer>
+      )}
+
+      {/* 4. TAB: AUDIT HISTORY */}
+      {activeTab === 'history' && (
+        <SectionContainer
+          title="Historical Simulation Audit Trail"
+          subtitle="Persistent audit log of all executed stochastic what-if simulation runs"
+          icon={<History className="w-4 h-4 text-[#0D6553]" />}
+        >
+          {loadingHistory ? (
+            <LoadingSkeleton rows={5} />
+          ) : !scenarioHistory || scenarioHistory.length === 0 ? (
+            <EmptyState
+              title="No Simulation History"
+              message="No previous scenario simulation runs recorded in the database audit log."
+            />
+          ) : (
+            <div className="overflow-x-auto text-xs">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-[#E6E2F0] bg-[#F4F2FB] text-[#6B5B84] uppercase text-[11px] font-semibold">
+                    <th className="py-3 px-4">Run ID</th>
+                    <th className="py-3 px-4">Policy Type</th>
+                    <th className="py-3 px-3 text-center">Horizon / Runs</th>
+                    <th className="py-3 px-3 text-right">Baseline Ao</th>
+                    <th className="py-3 px-3 text-right">Scenario Ao</th>
+                    <th className="py-3 px-3 text-right">Net Delta</th>
+                    <th className="py-3 px-4 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E6E2F0] text-[#3B1D5E]">
+                  {(scenarioHistory as any[]).map((item) => {
+                    const run: ScenarioRunOut = (item.results as ScenarioRunOut) || (item as unknown as ScenarioRunOut);
+                    const horizon = run.horizon_days ?? 30;
+                    const runsCount = run.runs ?? 100;
+                    const baselineAo = run.baseline?.availability_p50 !== undefined ? (run.baseline.availability_p50 * 100).toFixed(1) : '—';
+                    const scenarioAo = run.scenario?.availability_p50 !== undefined ? (run.scenario.availability_p50 * 100).toFixed(1) : '—';
+                    const deltaPct = run.delta?.availability_pct_points ?? 0;
+
+                    return (
+                      <tr key={item.id} className="hover:bg-[#FBF9FE] transition-colors">
+                        <td className="py-3 px-4 text-[#6B5B84] font-mono">{String(item.id).slice(0, 16)}...</td>
+                        <td className="py-3 px-4 font-bold text-[#3B1D5E]">{formatScenarioType(item.type)}</td>
+                        <td className="py-3 px-3 text-center text-[#6B5B84] font-mono">
+                          {horizon}d / {runsCount}r
+                        </td>
+                        <td className="py-3 px-3 text-right font-bold text-[#6B5B84] font-mono">
+                          {baselineAo}%
+                        </td>
+                        <td className="py-3 px-3 text-right font-bold text-[#3B1D5E] font-mono">
+                          {scenarioAo}%
+                        </td>
+                        <td
+                          className={`py-3 px-3 text-right font-bold font-mono ${
+                            deltaPct >= 0 ? 'text-[#059669]' : 'text-[#DC2626]'
+                          }`}
+                        >
+                          {deltaPct >= 0 ? '+' : ''}
+                          {deltaPct}%
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => {
+                              if (run.baseline && run.scenario) {
+                                setActiveResult(run);
+                                setActiveTab('simulator');
+                              }
+                            }}
+                            className="px-2.5 py-1 bg-[#E0F8FA] hover:bg-[#1DE9C0] text-[#0D6553] hover:text-[#1E1035] font-bold rounded-[8px] border border-[#1DE9C0]/40 text-[11px] transition shadow-sm"
+                          >
+                            View Output
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionContainer>
       )}
     </div>
   );
 };
 
 // ----------------------------------------------------
-// Subcomponent: Baseline vs Scenario Dual Curve with Bands
+// Subcomponent: Scenario Availability Trend Chart
 // ----------------------------------------------------
 interface ScenarioTrendChartProps {
   result: ScenarioRunOut;
@@ -1041,75 +1023,55 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
     if (!chartRef.current) return;
 
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current, 'dark', { renderer: 'canvas' });
+      chartInstance.current = echarts.init(chartRef.current, undefined, { renderer: 'canvas' });
     }
     const chart = chartInstance.current;
 
-    const baselineTrend: DailyTrendPoint[] = result.daily_trend?.baseline || [];
-    const scenarioTrend: DailyTrendPoint[] = result.daily_trend?.scenario || [];
+    const daily = result.daily_trend || {};
+    const basePts: any[] = (daily.baseline || []) as any[];
+    const scnPts: any[] = (daily.scenario || []) as any[];
 
-    const horizon = result.horizon_days || 30;
-    const days = Array.from({ length: horizon }, (_, i) => `Day ${i + 1}`);
+    const dates = daily.days
+      ? (daily.days as number[]).map((d) => `Day ${d}`)
+      : basePts.length > 0
+      ? basePts.map((p: any) => (p.date ? String(p.date) : `Day ${p.day || ''}`))
+      : Array.from({ length: result.horizon_days || 30 }).map((_, i) => `Day ${i + 1}`);
 
-    // Baseline P50, P10, P90
-    const baseP50 = baselineTrend.map((d) => Number((d.p50 * 100).toFixed(1)));
-    const baseP10 = baselineTrend.map((d) => Number((d.p10 * 100).toFixed(1)));
-    const baseP90 = baselineTrend.map((d) => Number((d.p90 * 100).toFixed(1)));
+    const baseP50: number[] = daily.baseline_p50
+      ? (daily.baseline_p50 as number[])
+      : basePts.length > 0
+      ? basePts.map((p: any) => Number(((p.p50 ?? p.avail ?? 0.8) * 100).toFixed(1)))
+      : Array.from({ length: dates.length }).map(() => Number((result.baseline.availability_p50 * 100).toFixed(1)));
 
-    // Scenario P50, P10, P90
-    const scenP50 = scenarioTrend.map((d) => Number((d.p50 * 100).toFixed(1)));
-    const scenP10 = scenarioTrend.map((d) => Number((d.p10 * 100).toFixed(1)));
-    const scenP90 = scenarioTrend.map((d) => Number((d.p90 * 100).toFixed(1)));
+    const scnP50: number[] = daily.scenario_p50
+      ? (daily.scenario_p50 as number[])
+      : scnPts.length > 0
+      ? scnPts.map((p: any) => Number(((p.p50 ?? p.avail ?? 0.8) * 100).toFixed(1)))
+      : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p50 * 100).toFixed(1)));
 
-    // Confidence band diff for stack area (P90 - P10)
-    const baseBandDiff = baseP90.map((v, i) => Math.max(0, v - (baseP10[i] || 0)));
-    const scenBandDiff = scenP90.map((v, i) => Math.max(0, v - (scenP10[i] || 0)));
+    const scnP10 = daily.scenario_p10
+      ? (daily.scenario_p10 as (number | null)[])
+      : scnPts.length > 0
+      ? scnPts.map((p: any) => (p.p10 !== null && p.p10 !== undefined ? Number((p.p10 * 100).toFixed(1)) : null))
+      : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p10 * 100).toFixed(1)));
+
+    const scnP90 = daily.scenario_p90
+      ? (daily.scenario_p90 as (number | null)[])
+      : scnPts.length > 0
+      ? scnPts.map((p: any) => (p.p90 !== null && p.p90 !== undefined ? Number((p.p90 * 100).toFixed(1)) : null))
+      : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p90 * 100).toFixed(1)));
 
     const option: echarts.EChartsOption = {
       backgroundColor: 'transparent',
       tooltip: {
         trigger: 'axis',
-        backgroundColor: '#0c1220',
-        borderColor: '#1e293b',
-        textStyle: { color: '#e2e8f0', fontSize: 11, fontFamily: 'monospace' },
-        formatter: (params: unknown) => {
-          const p = params as Array<{
-            seriesName: string;
-            value: number;
-            dataIndex: number;
-            color: string;
-          }>;
-          if (!p || p.length === 0) return '';
-          const idx = p[0].dataIndex;
-          const dayLabel = days[idx];
-
-          const b50 = baseP50[idx];
-          const b10 = baseP10[idx];
-          const b90 = baseP90[idx];
-
-          const s50 = scenP50[idx];
-          const s10 = scenP10[idx];
-          const s90 = scenP90[idx];
-
-          const delta = (s50 - b50).toFixed(1);
-
-          return `
-            <div style="font-family: monospace;">
-              <div style="font-weight: bold; color: #38bdf8; margin-bottom: 4px;">${dayLabel} Projection</div>
-              <div style="color: #60a5fa;">● Baseline P50: <strong>${b50}%</strong> (${b10}%–${b90}%)</div>
-              <div style="color: #34d399;">● Scenario P50: <strong>${s50}%</strong> (${s10}%–${s90}%)</div>
-              <div style="margin-top: 4px; border-top: 1px solid #334155; padding-top: 4px; color: ${
-                Number(delta) >= 0 ? '#34d399' : '#f87171'
-              };">
-                Delta: <strong>${Number(delta) >= 0 ? '+' : ''}${delta}% points</strong>
-              </div>
-            </div>
-          `;
-        },
+        backgroundColor: '#FFFFFF',
+        borderColor: '#E6E2F0',
+        textStyle: { color: '#3B1D5E', fontSize: 11 },
       },
       legend: {
-        data: ['Baseline (P50)', 'Scenario (P50)'],
-        textStyle: { color: '#94a3b8', fontSize: 10, fontFamily: 'monospace' },
+        data: ['Baseline (P50)', 'Scenario (P50)', 'Scenario P90 (Optimistic)', 'Scenario P10 (Stress)'],
+        textStyle: { color: '#6B5B84', fontSize: 10 },
         top: 0,
         right: 10,
       },
@@ -1117,92 +1079,68 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
         left: '3%',
         right: '4%',
         bottom: '3%',
-        top: '14%',
+        top: '18%',
         containLabel: true,
       },
       xAxis: {
         type: 'category',
-        data: days,
-        axisLine: { lineStyle: { color: '#334155' } },
-        axisLabel: {
-          color: '#94a3b8',
-          fontSize: 10,
-          fontFamily: 'monospace',
-          interval: Math.max(1, Math.floor(horizon / 8)),
-        },
+        data: dates,
+        axisLine: { lineStyle: { color: '#E6E2F0' } },
+        axisLabel: { color: '#8F7FA8', fontSize: 10, fontFamily: 'monospace' },
       },
       yAxis: {
         type: 'value',
         name: 'Availability %',
-        min: 60,
+        nameTextStyle: { color: '#8F7FA8', fontSize: 10 },
+        min: 40,
         max: 100,
-        splitLine: { lineStyle: { color: '#1e293b' } },
-        axisLabel: { color: '#94a3b8', fontSize: 10 },
+        splitLine: { lineStyle: { color: '#F4F2FB', type: 'dashed' } },
+        axisLabel: { color: '#8F7FA8', fontSize: 10 },
       },
       series: [
-        // Baseline Band Lower (invisible stack base)
-        {
-          name: 'Base P10',
-          type: 'line',
-          data: baseP10,
-          lineStyle: { opacity: 0 },
-          stack: 'base-band',
-          symbol: 'none',
-          tooltip: { show: false },
-        },
-        // Baseline Band Area
-        {
-          name: 'Base Envelope',
-          type: 'line',
-          data: baseBandDiff,
-          lineStyle: { opacity: 0 },
-          areaStyle: { color: 'rgba(59, 130, 246, 0.12)' },
-          stack: 'base-band',
-          symbol: 'none',
-          tooltip: { show: false },
-        },
-        // Scenario Band Lower
-        {
-          name: 'Scen P10',
-          type: 'line',
-          data: scenP10,
-          lineStyle: { opacity: 0 },
-          stack: 'scen-band',
-          symbol: 'none',
-          tooltip: { show: false },
-        },
-        // Scenario Band Area
-        {
-          name: 'Scen Envelope',
-          type: 'line',
-          data: scenBandDiff,
-          lineStyle: { opacity: 0 },
-          areaStyle: { color: 'rgba(16, 185, 129, 0.12)' },
-          stack: 'scen-band',
-          symbol: 'none',
-          tooltip: { show: false },
-        },
-        // Baseline P50 Line
         {
           name: 'Baseline (P50)',
           type: 'line',
           data: baseP50,
-          itemStyle: { color: '#3b82f6' },
-          lineStyle: { width: 2.5, color: '#3b82f6', type: 'dashed' },
-          symbol: 'circle',
-          symbolSize: 4,
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { color: '#8F7FA8', width: 2, type: 'dashed' },
+          itemStyle: { color: '#8F7FA8' },
         },
-        // Scenario P50 Line
         {
           name: 'Scenario (P50)',
           type: 'line',
-          data: scenP50,
-          itemStyle: { color: '#10b981' },
-          lineStyle: { width: 3, color: '#10b981' },
-          symbol: 'circle',
-          symbolSize: 4,
+          data: scnP50,
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { color: '#0D6553', width: 2.5 },
+          itemStyle: { color: '#0D6553' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(29, 233, 192, 0.25)' },
+              { offset: 1, color: 'rgba(29, 233, 192, 0.0)' },
+            ]),
+          },
         },
-      ],
+        {
+          name: 'Scenario P90 (Optimistic)',
+          type: 'line',
+          data: scnP90 as (number | null)[],
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { color: '#10B981', width: 1.5, type: 'dotted' },
+          itemStyle: { color: '#10B981' },
+        },
+        {
+          name: 'Scenario P10 (Stress)',
+          type: 'line',
+          data: scnP10 as (number | null)[],
+          smooth: true,
+          showSymbol: false,
+          lineStyle: { color: '#EF4444', width: 1.5, type: 'dotted' },
+          itemStyle: { color: '#EF4444' },
+        },
+      ] as any[],
     };
 
     chart.setOption(option, true);
@@ -1214,5 +1152,5 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
     };
   }, [result]);
 
-  return <div ref={chartRef} className="w-full h-80" />;
+  return <div ref={chartRef} className="w-full h-72" />;
 };

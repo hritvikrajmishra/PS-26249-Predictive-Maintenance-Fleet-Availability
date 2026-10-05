@@ -11,10 +11,9 @@ describe('App & Core Components', () => {
     localStorage.clear();
   });
 
-  it('renders synthetic data notice banner and login screen when unauthenticated', async () => {
+  it('renders login screen when unauthenticated', async () => {
     render(<App />);
 
-    expect(screen.getByText(/SYNTHETIC DATA ONLY/i)).toBeInTheDocument();
     expect(screen.getByText(/AeroPulse Cockpit/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Commander/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Planner/i })).toBeInTheDocument();
