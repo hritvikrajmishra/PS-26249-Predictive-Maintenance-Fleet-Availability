@@ -56,10 +56,20 @@ def get_db_url() -> str:
     elif raw_url.startswith("postgresql://") and not raw_url.startswith("postgresql+"):
         raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-    if "?pgbouncer=true" in raw_url:
-        raw_url = raw_url.replace("?pgbouncer=true", "")
-    elif "&pgbouncer=true" in raw_url:
-        raw_url = raw_url.replace("&pgbouncer=true", "")
+    for param in [
+        "?pgbouncer=true",
+        "&pgbouncer=true",
+        "?sslmode=require",
+        "&sslmode=require",
+        "?sslmode=prefer",
+        "&sslmode=prefer",
+        "?ssl=require",
+        "&ssl=require",
+    ]:
+        raw_url = raw_url.replace(param, "")
+
+    if raw_url.endswith("?"):
+        raw_url = raw_url[:-1]
 
     return raw_url
 
@@ -96,6 +106,8 @@ async def run_async_migrations() -> None:
     connect_args = {}
     if "asyncpg" in db_url:
         connect_args["statement_cache_size"] = 0
+        if "localhost" not in db_url and "127.0.0.1" not in db_url:
+            connect_args["ssl"] = "require"
 
     from sqlalchemy.ext.asyncio import create_async_engine
 

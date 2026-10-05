@@ -38,11 +38,22 @@ class Settings(BaseSettings):
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
         elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        # asyncpg does not accept ?pgbouncer=true query parameter
-        if "?pgbouncer=true" in url:
-            url = url.replace("?pgbouncer=true", "")
-        elif "&pgbouncer=true" in url:
-            url = url.replace("&pgbouncer=true", "")
+
+        for param in [
+            "?pgbouncer=true",
+            "&pgbouncer=true",
+            "?sslmode=require",
+            "&sslmode=require",
+            "?sslmode=prefer",
+            "&sslmode=prefer",
+            "?ssl=require",
+            "&ssl=require",
+        ]:
+            url = url.replace(param, "")
+
+        if url.endswith("?"):
+            url = url[:-1]
+
         return url
 
     @property
