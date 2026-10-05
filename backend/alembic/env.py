@@ -19,7 +19,7 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-from app.config import get_settings  # noqa: E402
+from app.config import get_settings, sanitize_db_url  # noqa: E402
 from app.models.base import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
@@ -51,27 +51,7 @@ def get_db_url() -> str:
             settings = get_settings()
             raw_url = settings.database_url
 
-    if raw_url.startswith("postgres://"):
-        raw_url = raw_url.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif raw_url.startswith("postgresql://") and not raw_url.startswith("postgresql+"):
-        raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-    for param in [
-        "?pgbouncer=true",
-        "&pgbouncer=true",
-        "?sslmode=require",
-        "&sslmode=require",
-        "?sslmode=prefer",
-        "&sslmode=prefer",
-        "?ssl=require",
-        "&ssl=require",
-    ]:
-        raw_url = raw_url.replace(param, "")
-
-    if raw_url.endswith("?"):
-        raw_url = raw_url[:-1]
-
-    return raw_url
+    return sanitize_db_url(raw_url)
 
 
 def run_migrations_offline() -> None:
