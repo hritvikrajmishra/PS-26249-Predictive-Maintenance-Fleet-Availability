@@ -953,7 +953,7 @@ export const SimulatorPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E6E2F0] text-[#3B1D5E]">
-                  {(scenarioHistory as Array<Record<string, unknown>>).map((item) => {
+                  {((scenarioHistory || []) as Array<Record<string, unknown>>).map((item) => {
                     const run: ScenarioRunOut = (item.results as ScenarioRunOut) || (item as unknown as ScenarioRunOut);
                     const horizon = run.horizon_days ?? 30;
                     const runsCount = run.runs ?? 100;
@@ -962,9 +962,9 @@ export const SimulatorPage: React.FC = () => {
                     const deltaPct = run.delta?.availability_pct_points ?? 0;
 
                     return (
-                      <tr key={item.id} className="hover:bg-[#FBF9FE] transition-colors">
-                        <td className="py-3 px-4 text-[#6B5B84] font-mono">{String(item.id).slice(0, 16)}...</td>
-                        <td className="py-3 px-4 font-bold text-[#3B1D5E]">{formatScenarioType(item.type)}</td>
+                      <tr key={String(item.id ?? Math.random())} className="hover:bg-[#FBF9FE] transition-colors">
+                        <td className="py-3 px-4 text-[#6B5B84] font-mono">{String(item.id ?? '').slice(0, 16)}...</td>
+                        <td className="py-3 px-4 font-bold text-[#3B1D5E]">{formatScenarioType(String(item.type ?? ''))}</td>
                         <td className="py-3 px-3 text-center text-[#6B5B84] font-mono">
                           {horizon}d / {runsCount}r
                         </td>
@@ -1028,37 +1028,37 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
     const chart = chartInstance.current;
 
     const daily = result.daily_trend || {};
-    const basePts: Array<Record<string, unknown>> = (daily.baseline || []) as Array<Record<string, unknown>>;
-    const scnPts: Array<Record<string, unknown>> = (daily.scenario || []) as Array<Record<string, unknown>>;
+    const basePts = daily.baseline || [];
+    const scnPts = daily.scenario || [];
 
     const dates = daily.days
-      ? (daily.days as number[]).map((d) => `Day ${d}`)
+      ? daily.days.map((d) => `Day ${d}`)
       : basePts.length > 0
-      ? basePts.map((p) => (p.date ? String(p.date) : `Day ${p.day || ''}`))
+      ? basePts.map((p) => `Day ${p.day}`)
       : Array.from({ length: result.horizon_days || 30 }).map((_, i) => `Day ${i + 1}`);
 
     const baseP50: number[] = daily.baseline_p50
-      ? (daily.baseline_p50 as number[])
+      ? daily.baseline_p50
       : basePts.length > 0
-      ? basePts.map((p) => Number((((p.p50 ?? p.avail ?? 0.8) as number) * 100).toFixed(1)))
+      ? basePts.map((p) => Number(((p.p50 ?? 0.8) * 100).toFixed(1)))
       : Array.from({ length: dates.length }).map(() => Number((result.baseline.availability_p50 * 100).toFixed(1)));
 
     const scnP50: number[] = daily.scenario_p50
-      ? (daily.scenario_p50 as number[])
+      ? daily.scenario_p50
       : scnPts.length > 0
-      ? scnPts.map((p) => Number((((p.p50 ?? p.avail ?? 0.8) as number) * 100).toFixed(1)))
+      ? scnPts.map((p) => Number(((p.p50 ?? 0.8) * 100).toFixed(1)))
       : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p50 * 100).toFixed(1)));
 
     const scnP10 = daily.scenario_p10
-      ? (daily.scenario_p10 as (number | null)[])
+      ? daily.scenario_p10
       : scnPts.length > 0
-      ? scnPts.map((p) => (p.p10 !== null && p.p10 !== undefined ? Number(((p.p10 as number) * 100).toFixed(1)) : null))
+      ? scnPts.map((p) => (p.p10 !== null && p.p10 !== undefined ? Number((p.p10 * 100).toFixed(1)) : null))
       : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p10 * 100).toFixed(1)));
 
     const scnP90 = daily.scenario_p90
-      ? (daily.scenario_p90 as (number | null)[])
+      ? daily.scenario_p90
       : scnPts.length > 0
-      ? scnPts.map((p) => (p.p90 !== null && p.p90 !== undefined ? Number(((p.p90 as number) * 100).toFixed(1)) : null))
+      ? scnPts.map((p) => (p.p90 !== null && p.p90 !== undefined ? Number((p.p90 * 100).toFixed(1)) : null))
       : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p90 * 100).toFixed(1)));
 
     const option: echarts.EChartsOption = {
