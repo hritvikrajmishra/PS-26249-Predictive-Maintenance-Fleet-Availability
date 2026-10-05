@@ -31,6 +31,21 @@ class Settings(BaseSettings):
     )
 
     @property
+    def normalized_database_url(self) -> str:
+        """Ensure the URL has postgresql+asyncpg:// driver and removes unsupported query params."""
+        url = self.database_url
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        # asyncpg does not accept ?pgbouncer=true query parameter
+        if "?pgbouncer=true" in url:
+            url = url.replace("?pgbouncer=true", "")
+        elif "&pgbouncer=true" in url:
+            url = url.replace("&pgbouncer=true", "")
+        return url
+
+    @property
     def effective_test_database_url(self) -> str:
         return self.test_database_url or self.database_url_test
 

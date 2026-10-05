@@ -36,22 +36,32 @@ target_metadata = Base.metadata
 
 def get_db_url() -> str:
     """Resolve database URL from config, env vars, or app settings."""
-    # 1. Direct environment override (e.g. during test runs or CLI commands)
+    raw_url = None
     if os.environ.get("DATABASE_URL"):
-        return os.environ["DATABASE_URL"]
-    if os.environ.get("TEST_DATABASE_URL"):
-        return os.environ["TEST_DATABASE_URL"]
-    if os.environ.get("DATABASE_URL_TEST"):
-        return os.environ["DATABASE_URL_TEST"]
+        raw_url = os.environ["DATABASE_URL"]
+    elif os.environ.get("TEST_DATABASE_URL"):
+        raw_url = os.environ["TEST_DATABASE_URL"]
+    elif os.environ.get("DATABASE_URL_TEST"):
+        raw_url = os.environ["DATABASE_URL_TEST"]
+    else:
+        cfg_url = config.get_main_option("sqlalchemy.url")
+        if cfg_url and not cfg_url.startswith("driver://"):
+            raw_url = cfg_url
+        else:
+            settings = get_settings()
+            raw_url = settings.database_url
 
-    # 2. Alembic custom config
-    cfg_url = config.get_main_option("sqlalchemy.url")
-    if cfg_url and not cfg_url.startswith("driver://"):
-        return cfg_url
+    if raw_url.startswith("postgres://"):
+        raw_url = raw_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif raw_url.startswith("postgresql://") and not raw_url.startswith("postgresql+"):
+        raw_url = raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-    # 3. Application settings
-    settings = get_settings()
-    return settings.database_url
+    if "?pgbouncer=true" in raw_url:
+        raw_url = raw_url.replace("?pgbouncer=true", "")
+    elif "&pgbouncer=true" in raw_url:
+        raw_url = raw_url.replace("&pgbouncer=true", "")
+
+    return raw_url
 
 
 def run_migrations_offline() -> None:
