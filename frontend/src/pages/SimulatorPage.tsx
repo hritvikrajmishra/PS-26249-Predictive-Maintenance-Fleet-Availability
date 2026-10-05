@@ -953,7 +953,7 @@ export const SimulatorPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E6E2F0] text-[#3B1D5E]">
-                  {(scenarioHistory as any[]).map((item) => {
+                  {(scenarioHistory as Array<Record<string, unknown>>).map((item) => {
                     const run: ScenarioRunOut = (item.results as ScenarioRunOut) || (item as unknown as ScenarioRunOut);
                     const horizon = run.horizon_days ?? 30;
                     const runsCount = run.runs ?? 100;
@@ -1028,37 +1028,37 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
     const chart = chartInstance.current;
 
     const daily = result.daily_trend || {};
-    const basePts: any[] = (daily.baseline || []) as any[];
-    const scnPts: any[] = (daily.scenario || []) as any[];
+    const basePts: Array<Record<string, unknown>> = (daily.baseline || []) as Array<Record<string, unknown>>;
+    const scnPts: Array<Record<string, unknown>> = (daily.scenario || []) as Array<Record<string, unknown>>;
 
     const dates = daily.days
       ? (daily.days as number[]).map((d) => `Day ${d}`)
       : basePts.length > 0
-      ? basePts.map((p: any) => (p.date ? String(p.date) : `Day ${p.day || ''}`))
+      ? basePts.map((p) => (p.date ? String(p.date) : `Day ${p.day || ''}`))
       : Array.from({ length: result.horizon_days || 30 }).map((_, i) => `Day ${i + 1}`);
 
     const baseP50: number[] = daily.baseline_p50
       ? (daily.baseline_p50 as number[])
       : basePts.length > 0
-      ? basePts.map((p: any) => Number(((p.p50 ?? p.avail ?? 0.8) * 100).toFixed(1)))
+      ? basePts.map((p) => Number((((p.p50 ?? p.avail ?? 0.8) as number) * 100).toFixed(1)))
       : Array.from({ length: dates.length }).map(() => Number((result.baseline.availability_p50 * 100).toFixed(1)));
 
     const scnP50: number[] = daily.scenario_p50
       ? (daily.scenario_p50 as number[])
       : scnPts.length > 0
-      ? scnPts.map((p: any) => Number(((p.p50 ?? p.avail ?? 0.8) * 100).toFixed(1)))
+      ? scnPts.map((p) => Number((((p.p50 ?? p.avail ?? 0.8) as number) * 100).toFixed(1)))
       : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p50 * 100).toFixed(1)));
 
     const scnP10 = daily.scenario_p10
       ? (daily.scenario_p10 as (number | null)[])
       : scnPts.length > 0
-      ? scnPts.map((p: any) => (p.p10 !== null && p.p10 !== undefined ? Number((p.p10 * 100).toFixed(1)) : null))
+      ? scnPts.map((p) => (p.p10 !== null && p.p10 !== undefined ? Number(((p.p10 as number) * 100).toFixed(1)) : null))
       : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p10 * 100).toFixed(1)));
 
     const scnP90 = daily.scenario_p90
       ? (daily.scenario_p90 as (number | null)[])
       : scnPts.length > 0
-      ? scnPts.map((p: any) => (p.p90 !== null && p.p90 !== undefined ? Number((p.p90 * 100).toFixed(1)) : null))
+      ? scnPts.map((p) => (p.p90 !== null && p.p90 !== undefined ? Number(((p.p90 as number) * 100).toFixed(1)) : null))
       : Array.from({ length: dates.length }).map(() => Number((result.scenario.availability_p90 * 100).toFixed(1)));
 
     const option: echarts.EChartsOption = {
@@ -1140,7 +1140,7 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
           lineStyle: { color: '#EF4444', width: 1.5, type: 'dotted' },
           itemStyle: { color: '#EF4444' },
         },
-      ] as any[],
+      ] as echarts.SeriesOption[],
     };
 
     chart.setOption(option, true);
