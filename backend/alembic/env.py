@@ -7,7 +7,7 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import create_async_engine
 
 # Ensure backend directory is in python sys.path
 backend_dir = Path(__file__).resolve().parent.parent
@@ -88,8 +88,6 @@ async def run_async_migrations() -> None:
         connect_args["statement_cache_size"] = 0
         if "localhost" not in db_url and "127.0.0.1" not in db_url:
             connect_args["ssl"] = "require"
-
-    from sqlalchemy.ext.asyncio import create_async_engine
 
     connectable = create_async_engine(
         db_url,

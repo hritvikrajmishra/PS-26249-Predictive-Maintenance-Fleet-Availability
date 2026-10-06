@@ -24,7 +24,7 @@ def sanitize_db_url(url: str) -> str:
         if "@" in rest:
             last_at = rest.rfind("@")
             creds_part = rest[:last_at]
-            host_part = rest[last_at + 1:]
+            host_part = rest[last_at + 1 :]
             if ":" in creds_part:
                 user_part, pass_part = creds_part.split(":", 1)
                 decoded_pass = urllib.parse.unquote(pass_part)
