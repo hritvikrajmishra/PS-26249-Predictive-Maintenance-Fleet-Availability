@@ -9,6 +9,7 @@ Supported commands:
     seed     Generate synthetic fleet data and populate PostgreSQL database (Phase 2).
     train    Run offline ML training and evaluation pipeline (Phase 4).
     engine   Run predictive maintenance scoring engine to generate advisories and alerts (Phase 5).
+    screenshots Capture full-page and section screenshots of all dashboard screens.
 
 Usage:
     python scripts/tasks.py demo
@@ -20,6 +21,7 @@ Usage:
     python scripts/tasks.py seed [--seed 42]
     python scripts/tasks.py train [--all]
     python scripts/tasks.py engine [--as-of YYYY-MM-DD] [--aircraft AC-017]
+    python scripts/tasks.py screenshots [--base-url URL]
 """
 
 import os
@@ -56,7 +58,13 @@ def run_dev() -> int:
     npm_cmd = get_npm_cmd()
 
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(BACKEND_DIR) + os.pathsep + env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = (
+        str(ROOT_DIR)
+        + os.pathsep
+        + str(BACKEND_DIR)
+        + os.pathsep
+        + env.get("PYTHONPATH", "")
+    )
 
     backend_proc = None
     frontend_proc = None
@@ -445,6 +453,15 @@ def run_demo(args: list[str] | None = None) -> int:
     return 0
 
 
+def run_screenshots(args: list[str] | None = None) -> int:
+    """Capture full-page and section screenshots of all dashboard screens."""
+    if str(ROOT_DIR) not in sys.path:
+        sys.path.insert(0, str(ROOT_DIR))
+    from scripts.screenshots.runner import run_screenshots as _run_screenshots
+
+    return _run_screenshots(args)
+
+
 def print_help() -> None:
     print(__doc__)
 
@@ -474,12 +491,14 @@ def main() -> int:
         return run_train(extra_args)
     elif cmd == "engine":
         return run_engine(extra_args)
+    elif cmd == "screenshots":
+        return run_screenshots(extra_args)
     elif cmd in ("-h", "--help", "help"):
         print_help()
         return 0
     else:
         print(
-            f"Unknown command: '{cmd}'. Supported commands: demo, dev, build, test, lint, migrate, seed, train, engine"
+            f"Unknown command: '{cmd}'. Supported commands: demo, dev, build, test, lint, migrate, seed, train, engine, screenshots"
         )
         return 1
 

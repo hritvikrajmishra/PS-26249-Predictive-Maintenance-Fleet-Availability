@@ -40,6 +40,10 @@ reports/*
 !reports/.gitkeep
 !reports/*.md
 
+# Screenshots
+docs/screenshots/*
+!docs/screenshots/README.md
+
 # IDE & OS
 .vscode/
 .idea/
