@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  Zap,
 } from 'lucide-react';
 import { TimeReplayControl } from '../common/TimeReplayControl';
 import { useAuth } from '../../hooks/useAuth';
@@ -24,7 +25,7 @@ import { useFleetSummary } from '../../hooks/useAvailabilityQueries';
 import type { UserRole } from '../../types/api';
 
 export const AppShell: React.FC = () => {
-  const { user, role, logout, switchDemoRole, asOfDate } = useAuth();
+  const { user, role, logout, switchDemoRole, mockLogin, asOfDate, isMockMode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,7 +41,11 @@ export const AppShell: React.FC = () => {
   const p2Count = summary?.open_p2 || 0;
 
   const handleRoleChange = async (newRole: UserRole) => {
-    await switchDemoRole(newRole);
+    try {
+      await switchDemoRole(newRole);
+    } catch {
+      mockLogin(newRole);
+    }
   };
 
   // Grouped Navigation Items
@@ -211,6 +216,14 @@ export const AppShell: React.FC = () => {
 
           {/* Role Switcher & User Profile */}
           <div className="flex items-center space-x-2 pl-2 border-l border-[#E6E2F0]">
+            {isMockMode && (
+              <span
+                className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EDE9FE] text-[#6D28D9] border border-[#DDD6FE]"
+                title="Running in offline mock mode (backend bypassed)"
+              >
+                <Zap className="w-3 h-3 text-[#7C3AED]" /> Mock Bypass
+              </span>
+            )}
             <span className="hidden md:inline text-[11px] text-[#6B5B84]">Role:</span>
             <select
               value={role || 'commander'}
