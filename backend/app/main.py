@@ -1,6 +1,7 @@
 """FastAPI application entrypoint for Integrated Predictive Maintenance Platform."""
 
 import logging
+import sys
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -22,7 +23,11 @@ setup_logging(level="INFO")
 logger = logging.getLogger("fleetmaint")
 settings = get_settings()
 
-FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 
 
 @asynccontextmanager

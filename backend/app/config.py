@@ -1,10 +1,28 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+
+
+def normalize_database_url(url: str) -> str:
+    """Normalize PostgreSQL connection URL to asynchronous SQLAlchemy asyncpg dialect.
+
+    Converts:
+        postgres://...           -> postgresql+asyncpg://...
+        postgresql://...         -> postgresql+asyncpg://...
+        postgresql+asyncpg://... -> unchanged
+    Preserves query parameters, ports, and URL-encoded credentials.
+    """
+    if not url:
+        return url
+    if url.startswith("postgres://"):
+        return "postgresql+asyncpg://" + url[len("postgres://") :]
+    if url.startswith("postgresql://"):
+        return "postgresql+asyncpg://" + url[len("postgresql://") :]
+    return url
 
 
 class Settings(BaseSettings):
@@ -29,6 +47,13 @@ class Settings(BaseSettings):
         default=None,
         description="Alias for database_url_test (supports TEST_DATABASE_URL env var)",
     )
+
+    @field_validator("database_url", "database_url_test", "test_database_url", mode="before")
+    @classmethod
+    def _normalize_database_urls(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        return normalize_database_url(v)
 
     @property
     def effective_test_database_url(self) -> str:
