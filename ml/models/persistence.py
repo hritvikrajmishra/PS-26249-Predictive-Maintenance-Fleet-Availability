@@ -6,6 +6,7 @@ import hashlib
 import json
 import logging
 import sys
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -125,7 +126,14 @@ def load_model_artifact(
     if not meta_path.exists():
         raise FileNotFoundError(f"Missing metadata at {meta_path}")
 
-    model = joblib.load(model_path)
+    with warnings.catch_warnings():
+        try:
+            from sklearn.exceptions import InconsistentVersionWarning
+
+            warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
+        except ImportError:
+            pass
+        model = joblib.load(model_path)
     with open(meta_path, "r", encoding="utf-8") as f:
         metadata = json.load(f)
 

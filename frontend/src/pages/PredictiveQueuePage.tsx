@@ -49,6 +49,8 @@ export const PredictiveQueuePage: React.FC = () => {
   const [engineAircraft, setEngineAircraft] = useState<string>('');
   const [engineResult, setEngineResult] = useState<EngineRunSummaryOut | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   // Queries & Mutations
   const { data: advisoriesData, isLoading: loadingAdvisories, refetch } = useAdvisories({
@@ -126,22 +128,35 @@ export const PredictiveQueuePage: React.FC = () => {
   // Actions
   const handleSingleAccept = async (id: string) => {
     setActionError(null);
+    setActionSuccess(null);
+    setProcessingId(id);
     try {
       await updateMutation.mutateAsync({ id, payload: { status: 'accepted' } });
-      selectedIds.delete(id);
-      setSelectedIds(new Set(selectedIds));
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setActionSuccess(`Advisory ${id} accepted. Maintenance action initiated.`);
+      await refetch();
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Accept failed');
+    } finally {
+      setProcessingId(null);
     }
   };
 
   const handleBulkAccept = async () => {
     setActionError(null);
+    setActionSuccess(null);
+    const count = selectedIds.size;
     try {
       for (const id of Array.from(selectedIds)) {
         await updateMutation.mutateAsync({ id, payload: { status: 'accepted' } });
       }
       setSelectedIds(new Set());
+      setActionSuccess(`${count} advisory${count > 1 ? 'ies' : ''} accepted successfully.`);
+      await refetch();
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Bulk accept failed');
     }
@@ -151,9 +166,11 @@ export const PredictiveQueuePage: React.FC = () => {
     e.preventDefault();
     if (!dismissReason.trim()) return;
     setActionError(null);
+    setActionSuccess(null);
 
     try {
       if (dismissTarget?.bulk) {
+        const count = selectedIds.size;
         for (const id of Array.from(selectedIds)) {
           await updateMutation.mutateAsync({
             id,
@@ -161,14 +178,22 @@ export const PredictiveQueuePage: React.FC = () => {
           });
         }
         setSelectedIds(new Set());
+        setActionSuccess(`${count} advisory${count > 1 ? 'ies' : ''} dismissed.`);
       } else if (dismissTarget?.id) {
         await updateMutation.mutateAsync({
           id: dismissTarget.id,
           payload: { status: 'dismissed', reason: dismissReason.trim() },
         });
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(dismissTarget.id!);
+          return next;
+        });
+        setActionSuccess(`Advisory ${dismissTarget.id} dismissed.`);
       }
       setDismissTarget(null);
       setDismissReason('');
+      await refetch();
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Dismissal failed');
     }
@@ -237,6 +262,19 @@ export const PredictiveQueuePage: React.FC = () => {
       {actionError && (
         <div className="p-3 bg-[#FDF2F0] border border-[#F5C2BC] rounded text-xs font-mono text-[#B3402F]">
           {actionError}
+        </div>
+      )}
+
+      {actionSuccess && (
+        <div className="p-3 bg-[#EDF6F0] border border-[#BCE1C7] rounded text-xs font-mono text-[#2E7D4F] flex items-center justify-between">
+          <span>{actionSuccess}</span>
+          <button
+            onClick={() => setActionSuccess(null)}
+            className="text-[#2E7D4F] hover:text-[#256640] ml-2 font-bold"
+            title="Dismiss notification"
+          >
+            ×
+          </button>
         </div>
       )}
 
@@ -562,11 +600,18 @@ export const PredictiveQueuePage: React.FC = () => {
                           <>
                             <button
                               onClick={() => handleSingleAccept(advisory.advisory_id)}
-                              disabled={updateMutation.isPending}
-                              className="py-0.5 px-2 bg-[#2E7D4F] hover:bg-[#256640] text-white rounded text-[11px] font-medium transition"
+                              disabled={updateMutation.isPending && processingId === advisory.advisory_id}
+                              className="py-0.5 px-2 bg-[#2E7D4F] hover:bg-[#256640] disabled:opacity-50 text-white rounded text-[11px] font-medium transition flex items-center gap-1"
                               title="Accept Advisory"
                             >
-                              Accept
+                              {processingId === advisory.advisory_id ? (
+                                <>
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                  <span>Saving...</span>
+                                </>
+                              ) : (
+                                <span>Accept</span>
+                              )}
                             </button>
 
                             <button
