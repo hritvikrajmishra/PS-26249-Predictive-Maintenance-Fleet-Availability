@@ -58,22 +58,23 @@ def create_temporal_splits(
         # Train on non-holdout only; test includes both temporal future and holdout
         train_mask &= ~df[aircraft_col].isin(holdout_aircraft)
 
-    train_idx = np.where(train_mask)[0]
-    val_idx = np.where(val_mask)[0]
-    test_idx = np.where(test_mask)[0]
+    train_idx = np.flatnonzero(train_mask.to_numpy())
+    val_idx = np.flatnonzero(val_mask.to_numpy())
+    test_idx = np.flatnonzero(test_mask.to_numpy())
 
+    dates_arr = dates.to_numpy()
     train_d = (
-        (dates.iloc[train_idx].min(), dates.iloc[train_idx].max())
+        (dates_arr[train_idx].min(), dates_arr[train_idx].max())
         if len(train_idx) > 0
         else (train_end, train_end)
     )
     val_d = (
-        (dates.iloc[val_idx].min(), dates.iloc[val_idx].max())
+        (dates_arr[val_idx].min(), dates_arr[val_idx].max())
         if len(val_idx) > 0
         else (train_end, val_end)
     )
     test_d = (
-        (dates.iloc[test_idx].min(), dates.iloc[test_idx].max())
+        (dates_arr[test_idx].min(), dates_arr[test_idx].max())
         if len(test_idx) > 0
         else (val_end, val_end)
     )
@@ -92,12 +93,12 @@ def verify_temporal_integrity(
     split: SplitResult, df: pd.DataFrame, date_col: str = "date"
 ) -> dict[str, Any]:
     """Sanity check that no sample in train occurs after any sample in val or test."""
-    dates = pd.to_datetime(df[date_col]).dt.date
+    dates_arr = pd.to_datetime(df[date_col]).dt.date.to_numpy()
 
-    max_train = dates.iloc[split.train_idx].max() if len(split.train_idx) > 0 else None
-    min_val = dates.iloc[split.val_idx].min() if len(split.val_idx) > 0 else None
-    max_val = dates.iloc[split.val_idx].max() if len(split.val_idx) > 0 else None
-    min_test = dates.iloc[split.test_idx].min() if len(split.test_idx) > 0 else None
+    max_train = dates_arr[split.train_idx].max() if len(split.train_idx) > 0 else None
+    min_val = dates_arr[split.val_idx].min() if len(split.val_idx) > 0 else None
+    max_val = dates_arr[split.val_idx].max() if len(split.val_idx) > 0 else None
+    min_test = dates_arr[split.test_idx].min() if len(split.test_idx) > 0 else None
 
     is_valid = True
     errors = []

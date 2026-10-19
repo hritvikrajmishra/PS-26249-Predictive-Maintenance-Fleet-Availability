@@ -1,0 +1,11 @@
+{
+  "include": [
+    "backend",
+    "ml",
+    "data_gen",
+    "scripts"
+  ],
+  "extraPaths": [
+    "backend"
+  ]
+}
