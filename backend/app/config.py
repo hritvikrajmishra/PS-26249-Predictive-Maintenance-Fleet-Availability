@@ -1,3 +1,4 @@
+import urllib.parse
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -8,27 +9,41 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-def normalize_database_url(url: str) -> str:
-    """Normalize PostgreSQL connection URL to asynchronous SQLAlchemy asyncpg dialect.
-
-    Converts:
-        postgres://...           -> postgresql+asyncpg://...
-        postgresql://...         -> postgresql+asyncpg://...
-        postgresql+asyncpg://... -> unchanged
-    Preserves query parameters, ports, and URL-encoded credentials.
-    Normalizes libpq-specific query parameters for asyncpg:
-        sslmode=...              -> ssl=...
-        removes unsupported channel_binding parameter
-    """
+def sanitize_db_url(url: str) -> str:
+    """Normalize database connection string for asyncpg, Supabase poolers, and cloud PostgreSQL."""
     if not url:
         return url
-    if url.startswith("postgres://"):
-        url = "postgresql+asyncpg://" + url[len("postgres://") :]
-    elif url.startswith("postgresql://"):
-        url = "postgresql+asyncpg://" + url[len("postgresql://") :]
 
-    if "sslmode=" in url:
-        url = url.replace("sslmode=", "ssl=")
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+    # Safely handle unencoded special characters in database passwords (e.g. '@' in passwords)
+    if "://" in url:
+        scheme, rest = url.split("://", 1)
+        if "@" in rest:
+            last_at = rest.rfind("@")
+            creds_part = rest[:last_at]
+            host_part = rest[last_at + 1 :]
+            if ":" in creds_part:
+                user_part, pass_part = creds_part.split(":", 1)
+                decoded_pass = urllib.parse.unquote(pass_part)
+                encoded_pass = urllib.parse.quote(decoded_pass, safe="")
+                url = f"{scheme}://{user_part}:{encoded_pass}@{host_part}"
+
+    for param in [
+        "?pgbouncer=true",
+        "&pgbouncer=true",
+        "?sslmode=require",
+        "&sslmode=require",
+        "?sslmode=prefer",
+        "&sslmode=prefer",
+        "?ssl=require",
+        "&ssl=require",
+    ]:
+        url = url.replace(param, "")
+
     if "channel_binding=" in url:
         import re
 
@@ -36,7 +51,13 @@ def normalize_database_url(url: str) -> str:
         if "?" not in url and "&" in url:
             url = url.replace("&", "?", 1)
 
+    if url.endswith("?"):
+        url = url[:-1]
+
     return url
+
+
+normalize_database_url = sanitize_db_url
 
 
 class Settings(BaseSettings):
@@ -68,6 +89,11 @@ class Settings(BaseSettings):
         if v is None:
             return None
         return normalize_database_url(v)
+
+    @property
+    def normalized_database_url(self) -> str:
+        """Ensure the URL has postgresql+asyncpg:// driver and removes unsupported query params."""
+        return sanitize_db_url(self.database_url)
 
     @property
     def effective_test_database_url(self) -> str:

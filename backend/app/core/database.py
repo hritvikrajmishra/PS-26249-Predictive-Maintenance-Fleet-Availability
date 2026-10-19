@@ -22,11 +22,19 @@ def get_engine() -> AsyncEngine:
     global _engine
     if _engine is None:
         settings = get_settings()
+        db_url = settings.normalized_database_url
+        connect_args = {}
+        if "asyncpg" in db_url:
+            connect_args["statement_cache_size"] = 0
+            if "localhost" not in db_url and "127.0.0.1" not in db_url:
+                connect_args["ssl"] = "require"
+
         _engine = create_async_engine(
-            settings.database_url,
+            db_url,
             echo=False,
             future=True,
             poolclass=pool.NullPool,
+            connect_args=connect_args,
         )
     return _engine
 

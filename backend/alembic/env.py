@@ -7,7 +7,7 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import create_async_engine
 
 # Ensure backend directory is in python sys.path
 backend_dir = Path(__file__).resolve().parent.parent
@@ -19,7 +19,7 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-from app.config import get_settings, normalize_database_url  # noqa: E402
+from app.config import get_settings, sanitize_db_url  # noqa: E402
 from app.models.base import Base  # noqa: E402
 
 # this is the Alembic Config object, which provides
@@ -36,20 +36,22 @@ target_metadata = Base.metadata
 
 def get_db_url() -> str:
     """Resolve database URL from config, env vars, or app settings."""
-    # 1. Direct environment override (e.g. during test runs or CLI commands)
-    for env_key in ("DATABASE_URL", "TEST_DATABASE_URL", "DATABASE_URL_TEST"):
-        val = os.environ.get(env_key)
-        if val:
-            return normalize_database_url(val)
+    raw_url = None
+    if os.environ.get("DATABASE_URL"):
+        raw_url = os.environ["DATABASE_URL"]
+    elif os.environ.get("TEST_DATABASE_URL"):
+        raw_url = os.environ["TEST_DATABASE_URL"]
+    elif os.environ.get("DATABASE_URL_TEST"):
+        raw_url = os.environ["DATABASE_URL_TEST"]
+    else:
+        cfg_url = config.get_main_option("sqlalchemy.url")
+        if cfg_url and not cfg_url.startswith("driver://"):
+            raw_url = cfg_url
+        else:
+            settings = get_settings()
+            raw_url = settings.database_url
 
-    # 2. Alembic custom config
-    cfg_url = config.get_main_option("sqlalchemy.url")
-    if cfg_url and not cfg_url.startswith("driver://"):
-        return normalize_database_url(cfg_url)
-
-    # 3. Application settings
-    settings = get_settings()
-    return settings.database_url
+    return sanitize_db_url(raw_url)
 
 
 def run_migrations_offline() -> None:
@@ -81,13 +83,16 @@ def do_run_migrations(connection: Connection) -> None:
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode using AsyncEngine."""
     db_url = get_db_url()
-    configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = db_url
+    connect_args = {}
+    if "asyncpg" in db_url:
+        connect_args["statement_cache_size"] = 0
+        if "localhost" not in db_url and "127.0.0.1" not in db_url:
+            connect_args["ssl"] = "require"
 
-    connectable = async_engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
+    connectable = create_async_engine(
+        db_url,
         poolclass=pool.NullPool,
+        connect_args=connect_args,
     )
 
     async with connectable.connect() as connection:

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../src/App';
 import { KpiCard } from '../src/components/common/KpiCard';
 import { StatusBadge } from '../src/components/common/StatusBadge';
@@ -11,14 +11,30 @@ describe('App & Core Components', () => {
     localStorage.clear();
   });
 
-  it('renders synthetic data notice banner and login screen when unauthenticated', async () => {
+  it('renders login screen when unauthenticated', async () => {
     render(<App />);
 
-    expect(screen.getByText(/SYNTHETIC DATA ONLY/i)).toBeInTheDocument();
     expect(screen.getByText(/AeroPulse Cockpit/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Commander/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Planner/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Technician/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Bypass Login Now/i })).toBeInTheDocument();
+  });
+
+  it('bypasses login and enters cockpit in mock mode with stored session', async () => {
+    render(<App />);
+
+    const bypassBtn = screen.getByRole('button', { name: /Bypass Login Now/i });
+    expect(bypassBtn).toBeInTheDocument();
+
+    fireEvent.click(bypassBtn);
+
+    await waitFor(() => {
+      expect(localStorage.getItem('fleet_auth_is_mock')).toBe('true');
+      expect(localStorage.getItem('fleet_auth_token')).toContain('mock-token-commander');
+      expect(screen.getByText(/Mock Bypass/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Fleet Operational Cockpit/i).length).toBeGreaterThan(0);
+    });
   });
 
   it('renders KpiCard with title, metric value, and subtitle', () => {

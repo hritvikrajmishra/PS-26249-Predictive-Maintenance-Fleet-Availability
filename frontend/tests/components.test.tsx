@@ -74,12 +74,12 @@ describe('Component Library Tests', () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText(/Hero State/i)).toBeInTheDocument();
-    expect(screen.getByText(/T-20d Base/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nov 25/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nov 05/i)).toBeInTheDocument();
 
-    const heroBtn = screen.getByRole('button', { name: /Hero State/i });
-    fireEvent.click(heroBtn);
-    expect(heroBtn).toBeInTheDocument();
+    const nov25Btn = screen.getByRole('button', { name: /Nov 25/i });
+    fireEvent.click(nov25Btn);
+    expect(nov25Btn).toBeInTheDocument();
   });
 
   it('renders SvgSchematic aircraft diagram highlighting degraded systems', () => {
