@@ -42,7 +42,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
         onClick ? 'cursor-pointer hover:border-[#2F5D8A] hover:bg-[#FAFAF8]' : ''
       }`}
     >
-      <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold truncate">
+      <div className="text-[11px] font-sans text-[#5C5C57] font-semibold truncate">
         {title}
       </div>
 
@@ -50,7 +50,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
         <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums tracking-tight">
           {value}
         </span>
-        {unit && <span className="text-xs text-[#5C5C57] font-mono">{unit}</span>}
+        {unit && <span className="text-xs text-[#5C5C57]">{unit}</span>}
       </div>
 
       {(subtitle || change) && (

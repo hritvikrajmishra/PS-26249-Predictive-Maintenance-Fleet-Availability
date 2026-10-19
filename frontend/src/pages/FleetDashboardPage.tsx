@@ -448,14 +448,14 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/scenarios')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            {selectedBase === 'all' ? 'Fleet Availability (Ao)' : `${selectedBase} Availability`}
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            {selectedBase === 'all' ? 'Fleet availability (Ao)' : `${selectedBase} availability`}
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
               {loadingSummary && loadingKpis ? '—' : `${displayedAvailability}%`}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">
+            <span className="text-xs text-[#5C5C57]">
               {selectedBase === 'all' ? '/ target ≥75%' : `/ ${baseAircraft.length} squadron total`}
             </span>
           </div>
@@ -470,14 +470,14 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/aircraft')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            Serviceable Airframes
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            Serviceable airframes
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
               {displayedServiceable.count}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">
+            <span className="text-xs text-[#5C5C57]">
               / {displayedServiceable.total} {selectedBase === 'all' ? 'fleet' : 'squadron'}
             </span>
           </div>
@@ -491,14 +491,14 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/advisories')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            P1 / P2 Active Advisories
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            P1 / P2 active advisories
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
               {totalActiveAdvisories}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">
+            <span className="text-xs text-[#5C5C57]">
               {selectedSystem !== 'all' || selectedBase !== 'all' ? 'matching items' : 'action items'}
             </span>
           </div>
@@ -513,14 +513,14 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/spares')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            Spares at Risk & Backlog
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            Spares at risk & backlog
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
               {summary?.parts_at_risk || 0}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">critical parts</span>
+            <span className="text-xs text-[#5C5C57]">critical parts</span>
           </div>
           <div className="mt-1 text-[11px] text-[#5C5C57] truncate">
             {kpis?.backlog.open_orders || summary?.backlog.open_orders || 0} open WOs ({Math.round(kpis?.backlog.outstanding_man_hours || 0)} hrs)
@@ -534,8 +534,8 @@ export const FleetDashboardPage: React.FC = () => {
         <div className="lg:col-span-2 bg-white border border-[#E3E3DE] rounded p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
-                Fleet Availability Timeline & 30-Day Forward Projection
+              <h3 className="text-xs font-semibold text-[#1A1A1A]">
+                Fleet availability timeline & 30-day forward projection
               </h3>
               <p className="text-[11px] text-[#5C5C57]">
                 Observed availability with P10 / P50 / P90 Monte Carlo projection
@@ -562,8 +562,8 @@ export const FleetDashboardPage: React.FC = () => {
         {/* Downtime by Cause (1 Col) */}
         <div className="bg-white border border-[#E3E3DE] rounded p-4 flex flex-col justify-between">
           <div>
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A] mb-1">
-              Downtime Loss Breakdown
+            <h3 className="text-xs font-semibold text-[#1A1A1A] mb-1">
+              Downtime loss breakdown
             </h3>
             <p className="text-[11px] text-[#5C5C57] mb-3">
               Cumulative aircraft-days lost by operational root cause
@@ -651,44 +651,44 @@ export const FleetDashboardPage: React.FC = () => {
       />
 
       {/* 6. Clean Operations Impact Summary (No gradients, no AI glow) */}
-      <div className="bg-[#FAFAF8] border border-[#E3E3DE] rounded p-4 font-mono space-y-3">
+      <div className="bg-[#FAFAF8] border border-[#E3E3DE] rounded p-4 font-sans space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-[#ECECE8]">
-          <h3 className="font-semibold text-xs uppercase tracking-wider text-[#1A1A1A]">
-            Integrated Maintenance & Availability Impact Summary
+          <h3 className="font-semibold text-xs text-[#1A1A1A]">
+            Integrated maintenance & availability impact summary
           </h3>
-          <span className="text-[11px] font-mono text-[#5C5C57]">
+          <span className="text-[11px] text-[#5C5C57]">
             Synthetic telemetry demonstration
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Availability Uplift</div>
-            <div className="text-lg font-semibold text-[#2E7D4F] tabular-nums">+7.8% Uplift</div>
+            <div className="text-[#5C5C57] text-[11px]">Availability uplift</div>
+            <div className="text-lg font-semibold font-mono text-[#2E7D4F] tabular-nums">+7.8% Uplift</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Fleet readiness elevated from ~74.2% reactive baseline to ~82.0% continuous availability.
             </p>
           </div>
 
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Downtime Reduction</div>
-            <div className="text-lg font-semibold text-[#2F5D8A] tabular-nums">-6.5 Days / Defect</div>
+            <div className="text-[#5C5C57] text-[11px]">Downtime reduction</div>
+            <div className="text-lg font-semibold font-mono text-[#2F5D8A] tabular-nums">-6.5 Days / Defect</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Proactive bundled bay slot requires 2.5d vs 9.0d run-to-failure unscheduled grounding.
             </p>
           </div>
 
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Advance Early Warning</div>
-            <div className="text-lg font-semibold text-[#2F5D8A] tabular-nums">19 Days Lead-Time</div>
+            <div className="text-[#5C5C57] text-[11px]">Advance early warning</div>
+            <div className="text-lg font-semibold font-mono text-[#2F5D8A] tabular-nums">19 Days Lead-Time</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Telemetry anomaly flags deteriorating pump ~19 days prior to functional failure.
             </p>
           </div>
 
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Supply Risk Avoidance</div>
-            <div className="text-lg font-semibold text-[#A66A00] tabular-nums">Zero Spares AOG</div>
+            <div className="text-[#5C5C57] text-[11px]">Supply risk avoidance</div>
+            <div className="text-lg font-semibold font-mono text-[#A66A00] tabular-nums">Zero Spares AOG</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Integrated logistics triggers 45-day lead-time procurement before depot stockout.
             </p>
@@ -702,8 +702,8 @@ export const FleetDashboardPage: React.FC = () => {
         <div className="bg-white border border-[#E3E3DE] rounded p-4 space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#ECECE8]">
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
-                Top Priority Maintenance Advisories
+              <h3 className="text-xs font-semibold text-[#1A1A1A]">
+                Top priority maintenance advisories
               </h3>
               {(selectedSystem !== 'all' || selectedBase !== 'all') && (
                 <span className="text-[10px] font-mono px-1.5 py-0.5 bg-[#EDF2F7] text-[#2F5D8A] rounded">
@@ -713,9 +713,9 @@ export const FleetDashboardPage: React.FC = () => {
             </div>
             <button
               onClick={() => navigate('/advisories')}
-              className="text-[11px] font-mono text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
+              className="text-[11px] font-sans text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
             >
-              Full Queue <ArrowRight className="w-3 h-3" />
+              Full queue <ArrowRight className="w-3 h-3" />
             </button>
           </div>
           <DataTable
@@ -732,8 +732,8 @@ export const FleetDashboardPage: React.FC = () => {
         <div className="bg-white border border-[#E3E3DE] rounded p-4 space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#ECECE8]">
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
-                Active & Upcoming Work Orders
+              <h3 className="text-xs font-semibold text-[#1A1A1A]">
+                Active & upcoming work orders
               </h3>
               {selectedBase !== 'all' && (
                 <span className="text-[10px] font-mono px-1.5 py-0.5 bg-[#EDF2F7] text-[#2F5D8A] rounded">
@@ -743,9 +743,9 @@ export const FleetDashboardPage: React.FC = () => {
             </div>
             <button
               onClick={() => navigate('/planning')}
-              className="text-[11px] font-mono text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
+              className="text-[11px] font-sans text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
             >
-              Planning Board <ArrowRight className="w-3 h-3" />
+              Planning board <ArrowRight className="w-3 h-3" />
             </button>
           </div>
           <DataTable
