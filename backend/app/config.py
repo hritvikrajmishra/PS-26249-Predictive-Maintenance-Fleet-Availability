@@ -82,6 +82,25 @@ class Settings(BaseSettings):
         default=["http://localhost:5173", "http://127.0.0.1:5173"],
         description="Allowed CORS origin URLs",
     )
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, v: Any) -> list[str]:
+        if v is None:
+            return ["http://localhost:5173", "http://127.0.0.1:5173"]
+        if isinstance(v, str):
+            v = v.strip()
+            if v == "*":
+                return ["*"]
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [part.strip() for part in v.split(",") if part.strip()]
+        return v
+
     secret_key: str = Field(
         default="dev_secret_key_fleetmaint_decision_support_phase0",
         description="Secret key for JWT tokens",

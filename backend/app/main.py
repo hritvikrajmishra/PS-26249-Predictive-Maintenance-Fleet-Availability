@@ -7,6 +7,14 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+BACKEND_DIR = ROOT_DIR / "backend"
+for path_to_add in (str(ROOT_DIR), str(BACKEND_DIR)):
+    if path_to_add not in sys.path:
+        sys.path.insert(0, path_to_add)
+
+FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -22,12 +30,6 @@ from app.services.auth_service import ensure_demo_users_exist
 setup_logging(level="INFO")
 logger = logging.getLogger("fleetmaint")
 settings = get_settings()
-
-ROOT_DIR = Path(__file__).resolve().parent.parent.parent
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
-
-FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
 
 
 @asynccontextmanager
@@ -61,6 +63,7 @@ register_exception_handlers(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
