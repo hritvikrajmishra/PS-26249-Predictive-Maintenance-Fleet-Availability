@@ -20,10 +20,10 @@ export const SvgSchematic: React.FC<SvgSchematicProps> = ({
 }) => {
   const getSystemColor = (name: string) => {
     const s = systems.find((sys) => sys.name.toLowerCase().includes(name.toLowerCase()));
-    if (!s) return { fill: '#1e293b', stroke: '#475569', hi: 100 };
-    if (s.healthIndex >= 75) return { fill: 'rgba(16, 185, 129, 0.25)', stroke: '#10b981', hi: s.healthIndex };
-    if (s.healthIndex >= 50) return { fill: 'rgba(245, 158, 11, 0.35)', stroke: '#f59e0b', hi: s.healthIndex };
-    return { fill: 'rgba(244, 63, 94, 0.45)', stroke: '#f43f5e', hi: s.healthIndex };
+    if (!s) return { fill: '#F4F4F2', stroke: '#7A7A75', text: '#5C5C57', hi: 100 };
+    if (s.healthIndex >= 75) return { fill: '#EDF6F0', stroke: '#2E7D4F', text: '#2E7D4F', hi: s.healthIndex };
+    if (s.healthIndex >= 50) return { fill: '#FEF7ED', stroke: '#A66A00', text: '#A66A00', hi: s.healthIndex };
+    return { fill: '#FDF2F0', stroke: '#B3402F', text: '#B3402F', hi: s.healthIndex };
   };
 
   const systemsMap = [
@@ -37,25 +37,25 @@ export const SvgSchematic: React.FC<SvgSchematicProps> = ({
   ];
 
   return (
-    <div className="w-full flex flex-col items-center bg-[#0a0f1d] border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden">
-      <div className="w-full flex items-center justify-between mb-2">
+    <div className="w-full flex flex-col items-center bg-white border border-[#E3E3DE] rounded p-4 relative overflow-hidden">
+      <div className="w-full flex items-center justify-between mb-2 pb-2 border-b border-[#ECECE8]">
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wider font-mono text-slate-200">
+          <h4 className="text-xs font-semibold uppercase tracking-wider font-mono text-[#1A1A1A]">
             Subsystem Health Telemetry Schematic
           </h4>
-          <p className="text-[11px] text-slate-400">
-            Interactive multi-system topological airframe overlay
+          <p className="text-[11px] text-[#5C5C57]">
+            Airframe topological subsystem status overlay
           </p>
         </div>
-        <div className="flex items-center space-x-3 text-[10px] font-mono">
+        <div className="flex items-center space-x-3 text-[11px] font-mono text-[#5C5C57]">
           <span className="flex items-center">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1" /> Nominal
+            <span className="w-2 h-2 rounded-full bg-[#2E7D4F] mr-1" /> Nominal
           </span>
           <span className="flex items-center">
-            <span className="w-2 h-2 rounded-full bg-amber-500 mr-1" /> Degraded
+            <span className="w-2 h-2 rounded-full bg-[#A66A00] mr-1" /> Degraded
           </span>
           <span className="flex items-center">
-            <span className="w-2 h-2 rounded-full bg-rose-500 mr-1" /> Critical
+            <span className="w-2 h-2 rounded-full bg-[#B3402F] mr-1" /> Critical
           </span>
         </div>
       </div>
@@ -64,13 +64,13 @@ export const SvgSchematic: React.FC<SvgSchematicProps> = ({
         <svg viewBox="0 0 520 420" className="w-full h-full select-none">
           {/* Subtle Grid Background */}
           <defs>
-            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#172033" strokeWidth="0.5" />
+            <pattern id="light-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#F0F0EB" strokeWidth="1" />
             </pattern>
           </defs>
-          <rect width="520" height="420" fill="url(#grid)" />
+          <rect width="520" height="420" fill="url(#light-grid)" />
 
-          {/* Aircraft Silhouette Outline (Generic Delta-Wing Fighter/Trainer Jet) */}
+          {/* Aircraft Silhouette Outline (Clean light blueprint style) */}
           <path
             d="M 260 25
                C 264 45, 270 90, 272 130
@@ -91,15 +91,15 @@ export const SvgSchematic: React.FC<SvgSchematicProps> = ({
                L 125 240
                L 248 130
                C 250 90, 256 45, 260 25 Z"
-            fill="#0f172a"
-            stroke="#334155"
+            fill="#F4F4F1"
+            stroke="#D3D3CD"
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
 
           {/* Internal Structure Lines */}
-          <line x1="260" y1="35" x2="260" y2="385" stroke="#1e293b" strokeDasharray="3 3" />
-          <line x1="190" y1="220" x2="330" y2="220" stroke="#1e293b" strokeDasharray="2 2" />
+          <line x1="260" y1="35" x2="260" y2="385" stroke="#E3E3DE" strokeDasharray="3 3" />
+          <line x1="190" y1="220" x2="330" y2="220" stroke="#E3E3DE" strokeDasharray="2 2" />
 
           {/* Subsystem Interactive Nodes */}
           {systemsMap.map((node) => {
@@ -116,36 +116,21 @@ export const SvgSchematic: React.FC<SvgSchematicProps> = ({
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={isSelected ? node.r + 4 : node.r}
+                  r={isSelected ? node.r + 3 : node.r}
                   fill={style.fill}
-                  stroke={isSelected ? '#38bdf8' : style.stroke}
+                  stroke={isSelected ? '#2F5D8A' : style.stroke}
                   strokeWidth={isSelected ? 2.5 : 1.5}
-                  className="transition-all duration-200 group-hover:stroke-blue-400"
                 />
-
-                {/* Pulsing indicator if degraded/critical */}
-                {style.hi < 75 && (
-                  <circle
-                    cx={node.x}
-                    cy={node.y}
-                    r={node.r + 6}
-                    fill="none"
-                    stroke={style.stroke}
-                    strokeWidth="1"
-                    opacity="0.6"
-                    className="animate-ping"
-                  />
-                )}
 
                 {/* Score in circle */}
                 <text
                   x={node.x}
                   y={node.y + 4}
                   textAnchor="middle"
-                  fill="#ffffff"
+                  fill={style.text}
                   fontSize="11"
-                  fontWeight="bold"
-                  fontFamily="monospace"
+                  fontWeight="600"
+                  fontFamily="'IBM Plex Mono', monospace"
                 >
                   {Math.round(style.hi)}
                 </text>
@@ -155,11 +140,10 @@ export const SvgSchematic: React.FC<SvgSchematicProps> = ({
                   x={node.x}
                   y={node.y + node.r + 14}
                   textAnchor="middle"
-                  fill={isSelected ? '#38bdf8' : '#cbd5e1'}
+                  fill={isSelected ? '#2F5D8A' : '#1A1A1A'}
                   fontSize="10"
-                  fontFamily="monospace"
-                  fontWeight={isSelected ? 'bold' : 'normal'}
-                  className="group-hover:fill-blue-300"
+                  fontFamily="'IBM Plex Sans', sans-serif"
+                  fontWeight={isSelected ? '600' : '500'}
                 >
                   {node.label}
                 </text>

@@ -1,15 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  Cpu,
-  Activity,
-  AlertTriangle,
-  Clock,
-  TrendingDown,
   Info,
-  ShieldAlert,
 } from 'lucide-react';
-import { KpiCard } from '../components/common/KpiCard';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { DataTable, type Column } from '../components/common/DataTable';
 import { TimeSeriesChart, type TimeSeriesAnomalyWindow } from '../components/common/TimeSeriesChart';
@@ -35,10 +28,9 @@ export const ComponentHealthPage: React.FC = () => {
   const { data: componentsData } = useComponents({ page_size: 150 });
   const allComponents = componentsData?.items || [];
 
-  // Determine active component ID: prefer URL param, or AC-017 hydraulic pump if exists, or first
+  // Determine active component ID: prefer URL param, or hero aircraft AC-017's component, or first
   const activeComponentId = useMemo(() => {
     if (initialComponentId) return initialComponentId;
-    // Prefer hero aircraft AC-017's component if present
     const heroComp = allComponents.find(
       (c) => c.aircraft_id === 'AC-017' && (c.component_id.toLowerCase().includes('pump') || c.status === 'degraded')
     );
@@ -56,7 +48,7 @@ export const ComponentHealthPage: React.FC = () => {
   const { data: compTwin, isLoading: loadingTwin } = useComponentTwin(activeComponentId, asOfDate);
   const { data: sensorReadings, isLoading: loadingSensors } = useComponentSensors(activeComponentId, { limit: 500 });
   const { data: anomaliesData } = useComponentAnomalies(activeComponentId);
-  const { data: predictionsData, isLoading: loadingPredictions } = usePredictions({
+  const { data: predictionsData } = usePredictions({
     page_size: 10,
     as_of_date: asOfDate || undefined,
   });
@@ -72,12 +64,10 @@ export const ComponentHealthPage: React.FC = () => {
   }, [predictionsData, activeComponentId]);
 
   const componentAdvisory: AdvisoryOut | null = useMemo(() => {
-    // Check if active_advisory in compTwin
     if (compTwin?.active_advisory) {
       const adv = compTwin.active_advisory as unknown as AdvisoryOut;
       if (adv.advisory_id) return adv;
     }
-    // Check advisories list
     if (advisoriesData?.items) {
       return advisoriesData.items.find((a) => a.component_id === activeComponentId) || null;
     }
@@ -101,7 +91,6 @@ export const ComponentHealthPage: React.FC = () => {
     const grouped: Record<string, Array<[string, number]>> = {};
     const anomalies: TimeSeriesAnomalyWindow[] = [];
 
-    // Sort readings by date
     const sorted = [...sensorReadings].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
     sorted.forEach((r) => {
@@ -116,12 +105,11 @@ export const ComponentHealthPage: React.FC = () => {
           startDate: d,
           endDate: d,
           label: r.quality_flag,
-          color: 'rgba(244, 63, 94, 0.25)',
+          color: 'rgba(179, 64, 47, 0.12)',
         });
       }
     });
 
-    // Add ML anomaly scores from anomaliesData
     if (anomaliesData && anomaliesData.length > 0) {
       anomaliesData
         .filter((a) => a.is_anomaly || a.score >= 0.45)
@@ -131,7 +119,7 @@ export const ComponentHealthPage: React.FC = () => {
               startDate: a.date,
               endDate: a.date,
               label: `Anomaly ${(a.score * 100).toFixed(0)}%`,
-              color: 'rgba(244, 63, 94, 0.35)',
+              color: 'rgba(179, 64, 47, 0.18)',
             });
           }
         });
@@ -144,7 +132,7 @@ export const ComponentHealthPage: React.FC = () => {
       area?: boolean;
     }> = [];
 
-    const colors = ['#38bdf8', '#f59e0b', '#10b981', '#a855f7', '#ec4899', '#f97316'];
+    const colors = ['#2F5D8A', '#A66A00', '#2E7D4F', '#8F6580', '#608070', '#8C7A6B'];
     let colorIdx = 0;
 
     Object.entries(grouped).forEach(([param, pts]) => {
@@ -174,7 +162,7 @@ export const ComponentHealthPage: React.FC = () => {
 
     compTwin.predicted_trajectory.forEach((pt) => {
       hiPts.push([pt.date, Number(pt.health_index.toFixed(1))]);
-      thresholdPts.push([pt.date, 50.0]); // Failure/Degradation alert threshold
+      thresholdPts.push([pt.date, 50.0]); // Failure alert threshold
       if (pt.is_forecast && !forecastDate) {
         forecastDate = pt.date;
       }
@@ -184,13 +172,13 @@ export const ComponentHealthPage: React.FC = () => {
       {
         name: 'Component Health Index (HI)',
         data: hiPts,
-        color: (compTwin.health_index >= 75) ? '#10b981' : (compTwin.health_index >= 50) ? '#f59e0b' : '#f43f5e',
+        color: (compTwin.health_index >= 75) ? '#2E7D4F' : (compTwin.health_index >= 50) ? '#A66A00' : '#B3402F',
         area: true,
       },
       {
         name: 'Alert Threshold (HI = 50)',
         data: thresholdPts,
-        color: '#f43f5e',
+        color: '#B3402F',
         area: false,
         dashed: true,
       },
@@ -203,7 +191,7 @@ export const ComponentHealthPage: React.FC = () => {
   const historyColumns: Column<TwinMaintenanceEvent>[] = [
     {
       header: 'Date',
-      render: (row) => <span className="font-mono text-slate-300">{row.date}</span>,
+      render: (row) => <span className="font-mono text-[#1A1A1A]">{row.date}</span>,
     },
     {
       header: 'Type',
@@ -212,7 +200,7 @@ export const ComponentHealthPage: React.FC = () => {
     },
     {
       header: 'Description',
-      render: (row) => <span className="text-slate-200">{row.description}</span>,
+      render: (row) => <span className="text-[#1A1A1A]">{row.description}</span>,
     },
     {
       header: 'Status',
@@ -221,15 +209,6 @@ export const ComponentHealthPage: React.FC = () => {
     },
   ];
 
-  if (loadingTwin && !compTwin) {
-    return <LoadingSkeleton rows={8} />;
-  }
-
-  const rulP10 = componentPrediction?.rul_p10 ?? (compTwin?.rul_p50 ? Math.max(1, compTwin.rul_p50 - 5) : 10);
-  const rulP50 = componentPrediction?.rul_p50 ?? compTwin?.rul_p50 ?? 15;
-  const rulP90 = componentPrediction?.rul_p90 ?? (compTwin?.rul_p50 ? compTwin.rul_p50 + 8 : 22);
-
-  const riskScore = componentPrediction?.risk_14d ?? compTwin?.risk ?? 0.15;
   const shapDrivers = useMemo(() => {
     const raw =
       componentAdvisory?.explanation?.top_shap_factors ||
@@ -254,53 +233,58 @@ export const ComponentHealthPage: React.FC = () => {
     ];
   }, [componentAdvisory]);
 
+  if (loadingTwin && !compTwin) {
+    return <LoadingSkeleton rows={8} />;
+  }
+
+  const rulP10 = componentPrediction?.rul_p10 ?? (compTwin?.rul_p50 ? Math.max(1, compTwin.rul_p50 - 5) : 10);
+  const rulP50 = componentPrediction?.rul_p50 ?? compTwin?.rul_p50 ?? 15;
+  const rulP90 = componentPrediction?.rul_p90 ?? (compTwin?.rul_p50 ? compTwin.rul_p50 + 8 : 22);
+
+  const riskScore = componentPrediction?.risk_14d ?? compTwin?.risk ?? 0.15;
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* 1. Component Header & Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-cyan-600/20 border border-cyan-500/40 rounded-xl text-cyan-400">
-            <Cpu className="w-6 h-6" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E3E3DE] pb-4">
+        <div>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-xl md:text-2xl font-semibold text-[#1A1A1A] tracking-tight">
+              {compTwin?.component_name || activeComponentId}
+            </h1>
+            <StatusBadge status={compTwin?.state || 'Nominal'} size="md" />
+            {activeComponentId.toLowerCase().includes('pump') && compTwin?.aircraft_id === 'AC-017' && (
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#FEF7ED] text-[#A66A00] border border-[#F8DCB5] font-semibold">
+                Scripted Failure Arc
+              </span>
+            )}
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl md:text-2xl font-bold font-mono text-white tracking-tight">
-                {compTwin?.component_name || activeComponentId}
-              </h1>
-              <StatusBadge status={compTwin?.state || 'Nominal'} size="md" />
-              {activeComponentId.toLowerCase().includes('pump') && compTwin?.aircraft_id === 'AC-017' && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold">
-                  Scripted Failure Arc
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Part No: <span className="text-slate-200">{compTwin?.part_number || 'PN-HYD-001'}</span> • Serial No:{' '}
-              <span className="text-slate-200">{compTwin?.serial_number || 'SN-7892'}</span> • Installed on:{' '}
-              <button
-                onClick={() => navigate(`/aircraft?id=${compTwin?.aircraft_id}`)}
-                className="text-blue-400 hover:underline font-bold"
-              >
-                {compTwin?.aircraft_id}
-              </button>{' '}
-              ({compTwin?.system_name || 'Hydraulics'})
-            </p>
-          </div>
+          <p className="text-xs text-[#5C5C57] font-mono mt-0.5">
+            Part No: <span className="text-[#1A1A1A] font-semibold">{compTwin?.part_number || 'PN-HYD-001'}</span> • Serial No:{' '}
+            <span className="text-[#1A1A1A] font-semibold">{compTwin?.serial_number || 'SN-7892'}</span> • Installed on:{' '}
+            <button
+              onClick={() => navigate(`/aircraft?id=${compTwin?.aircraft_id}`)}
+              className="text-[#2F5D8A] hover:underline font-semibold"
+            >
+              {compTwin?.aircraft_id}
+            </button>{' '}
+            ({compTwin?.system_name || 'Hydraulics'})
+          </p>
         </div>
 
         {/* Component Selector */}
-        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs font-mono">
-          <span className="text-slate-400">Select Component:</span>
+        <div className="flex items-center space-x-1.5 bg-white border border-[#E3E3DE] rounded px-2.5 py-1 text-xs font-mono">
+          <span className="text-[#5C5C57]">Select Component:</span>
           <select
             value={activeComponentId}
             onChange={(e) => {
               const newId = e.target.value;
               navigate(`/components/${newId}`);
             }}
-            className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer max-w-xs truncate"
+            className="bg-transparent text-[#1A1A1A] font-semibold focus:outline-none cursor-pointer max-w-xs truncate border-none p-0"
           >
             {allComponents.map((c) => (
-              <option key={c.component_id} value={c.component_id} className="bg-slate-900 text-white">
+              <option key={c.component_id} value={c.component_id}>
                 {c.aircraft_id ? `${c.aircraft_id} • ` : ''}
                 {c.component_id} ({c.status})
               </option>
@@ -309,66 +293,68 @@ export const ComponentHealthPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Primary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          title="Component Health Index (HI)"
-          value={compTwin ? compTwin.health_index.toFixed(1) : '—'}
-          subtitle={`Design Criticality: Level ${compTwin?.criticality || 4}`}
-          change={{
-            value: (riskScore * 100).toFixed(0) + '% Risk',
-            isPositive: riskScore < 0.3,
-            label: '14-Day',
-          }}
-          icon={<Activity className="w-5 h-5" />}
-          accent={
-            (compTwin?.health_index ?? 100) >= 75
-              ? 'emerald'
-              : (compTwin?.health_index ?? 100) >= 50
-              ? 'amber'
-              : 'rose'
-          }
-          loading={loadingTwin}
-        />
+      {/* 2. Compact Metric Summary Strip */}
+      <div className="bg-white border border-[#E3E3DE] rounded grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#E3E3DE]">
+        <div className="p-4">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
+            Health Index (HI)
+          </div>
+          <div className="flex items-baseline space-x-1.5 mt-1">
+            <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
+              {compTwin ? compTwin.health_index.toFixed(1) : '—'}
+            </span>
+            <span className="text-xs text-[#5C5C57] font-mono">/ 100</span>
+          </div>
+          <div className="mt-1 text-[11px] text-[#5C5C57]">
+            {(riskScore * 100).toFixed(0)}% failure risk in 14 days
+          </div>
+        </div>
 
-        <KpiCard
-          title="Predicted RUL (Median P50)"
-          value={`${Math.round(rulP50)} Days`}
-          subtitle={`Credible interval: ${Math.round(rulP10)} – ${Math.round(rulP90)} days`}
-          change={{
-            value: `${Math.round(rulP10)}d lower`,
-            isPositive: rulP10 > 14,
-            label: 'P10',
-          }}
-          icon={<Clock className="w-5 h-5" />}
-          accent={rulP50 <= 14 ? 'rose' : rulP50 <= 30 ? 'amber' : 'blue'}
-          loading={loadingTwin || loadingPredictions}
-        />
+        <div className="p-4">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
+            Predicted RUL (Median P50)
+          </div>
+          <div className="flex items-baseline space-x-1.5 mt-1">
+            <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
+              {Math.round(rulP50)} Days
+            </span>
+          </div>
+          <div className="mt-1 text-[11px] text-[#5C5C57]">
+            Interval: {Math.round(rulP10)} – {Math.round(rulP90)} days (P10–P90)
+          </div>
+        </div>
 
-        <KpiCard
-          title="Operating Utilization"
-          value={`${Math.round(compTwin?.operating_hours ?? 340)}h`}
-          subtitle={`Total life since new: ${Math.round(compTwin?.hours_since_new ?? 1200)}h`}
-          icon={<TrendingDown className="w-5 h-5" />}
-          accent="slate"
-          loading={loadingTwin}
-        />
+        <div className="p-4">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
+            Operating Utilization
+          </div>
+          <div className="flex items-baseline space-x-1.5 mt-1">
+            <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
+              {Math.round(compTwin?.operating_hours ?? 340)}h
+            </span>
+          </div>
+          <div className="mt-1 text-[11px] text-[#5C5C57]">
+            Total life: {Math.round(compTwin?.hours_since_new ?? 1200)}h since new
+          </div>
+        </div>
 
-        <KpiCard
-          title="Active Advisory Status"
-          value={componentAdvisory?.priority || 'Nominal'}
-          subtitle={componentAdvisory?.action || 'No open maintenance action required'}
-          icon={<AlertTriangle className="w-5 h-5" />}
-          accent={componentAdvisory ? 'amber' : 'emerald'}
-          loading={loadingTwin}
-        />
+        <div className="p-4">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
+            Active Advisory Status
+          </div>
+          <div className="mt-2">
+            <StatusBadge status={componentAdvisory?.priority || 'Nominal'} size="md" />
+          </div>
+          <div className="mt-1 text-[11px] text-[#5C5C57] truncate">
+            {componentAdvisory?.action || 'No open maintenance action required'}
+          </div>
+        </div>
       </div>
 
-      {/* 3. Advisory Human-in-the-Loop Card (if advisory active) */}
+      {/* 3. Advisory Card (if active) */}
       {componentAdvisory && (
-        <div className="space-y-2">
-          <div className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+        <div className="space-y-1.5">
+          <div className="text-xs font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
             Decision-Support Maintenance Advisory Action
           </div>
           <AdvisoryCard
@@ -380,25 +366,25 @@ export const ComponentHealthPage: React.FC = () => {
 
       {/* 4. Charts Grid: Sensor Telemetry Trends + HI Trajectory with Threshold */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Multi-Parameter Sensor Telemetry with Anomaly Shading */}
-        <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        {/* Left: Multi-Parameter Sensor Telemetry */}
+        <div className="bg-white border border-[#E3E3DE] rounded p-4 flex flex-col justify-between space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#ECECE8]">
             <div>
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
+              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
                 Multi-Parameter Telemetry & Anomaly Shading
               </h3>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-[#5C5C57]">
                 Post-flight sensor summary parameters with shaded anomaly windows
               </p>
             </div>
 
             {/* Parameter Selector */}
-            <div className="flex items-center space-x-1.5 text-xs font-mono">
-              <span className="text-slate-400 text-[11px]">Param:</span>
+            <div className="flex items-center space-x-1 text-xs font-mono">
+              <span className="text-[#5C5C57] text-[11px]">Param:</span>
               <select
                 value={selectedParam}
                 onChange={(e) => setSelectedParam(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 focus:outline-none"
+                className="bg-[#FAFAF8] border border-[#E3E3DE] rounded px-2 py-0.5 text-[#1A1A1A] focus:outline-none"
               >
                 <option value="all">All Parameters</option>
                 {availableParameters.map((p) => (
@@ -411,7 +397,7 @@ export const ComponentHealthPage: React.FC = () => {
           </div>
 
           <TimeSeriesChart
-            height={270}
+            height={250}
             series={sensorSeries}
             anomalyWindows={anomalyWindows}
             yAxisLabel="Normalized Signal"
@@ -419,26 +405,26 @@ export const ComponentHealthPage: React.FC = () => {
           />
         </div>
 
-        {/* Right: Health Index Trajectory with Projected Threshold Crossing */}
-        <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        {/* Right: Health Index Trajectory */}
+        <div className="bg-white border border-[#E3E3DE] rounded p-4 flex flex-col justify-between space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#ECECE8]">
             <div>
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
+              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
                 Health Index Degradation Trajectory
               </h3>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-[#5C5C57]">
                 Latent degradation progression toward failure threshold (HI = 50)
               </p>
             </div>
             {trajectoryForecastStart && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950/60 border border-blue-500/40 text-blue-300">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#FAFAF8] border border-[#E3E3DE] text-[#5C5C57]">
                 Forecast: {trajectoryForecastStart}
               </span>
             )}
           </div>
 
           <TimeSeriesChart
-            height={270}
+            height={250}
             series={trajectorySeries}
             forecastStartDate={trajectoryForecastStart}
             yAxisLabel="Health Index"
@@ -449,25 +435,25 @@ export const ComponentHealthPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 5. Lower Row: SHAP Contributors Bar Chart + RUL Distribution Interval */}
+      {/* 5. Lower Row: SHAP Contributors + RUL Distribution Interval */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* SHAP Wear Drivers (7 cols) */}
-        <div className="lg:col-span-7 bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-7 bg-white border border-[#E3E3DE] rounded p-4 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#ECECE8]">
             <div>
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
+              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
                 SHAP Feature Attribution (ML Explainability)
               </h3>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-[#5C5C57]">
                 Top telemetry and operating stress features accelerating component wear
               </p>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/40">
-              TreeExplainer (LightGBM)
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#FAFAF8] text-[#5C5C57] border border-[#E3E3DE]">
+              LightGBM TreeExplainer
             </span>
           </div>
 
-          <div className="space-y-3 font-mono text-xs pt-1">
+          <div className="space-y-2.5 font-mono text-xs pt-1">
             {shapDrivers.map((driver, idx) => {
               const isPositive = driver.impact >= 0;
               const magnitude = Math.min(100, Math.abs(driver.impact) * 120);
@@ -475,19 +461,17 @@ export const ComponentHealthPage: React.FC = () => {
               return (
                 <div key={idx} className="space-y-1">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-300 font-medium">
+                    <span className="text-[#1A1A1A] font-medium">
                       {driver.feature.replace(/_/g, ' ')}
                     </span>
-                    <span className={`font-semibold ${isPositive ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    <span className={`font-semibold tabular-nums ${isPositive ? 'text-[#B3402F]' : 'text-[#2E7D4F]'}`}>
                       {isPositive ? `+${driver.impact.toFixed(3)}` : driver.impact.toFixed(3)} SHAP
                     </span>
                   </div>
-                  <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden flex">
+                  <div className="w-full bg-[#ECECE8] h-1.5 rounded-full overflow-hidden flex">
                     <div
                       className={`h-full rounded-full ${
-                        isPositive
-                          ? 'bg-gradient-to-r from-amber-500 to-rose-500'
-                          : 'bg-gradient-to-r from-blue-500 to-emerald-500'
+                        isPositive ? 'bg-[#B3402F]' : 'bg-[#2E7D4F]'
                       }`}
                       style={{ width: `${magnitude}%` }}
                     />
@@ -499,47 +483,47 @@ export const ComponentHealthPage: React.FC = () => {
         </div>
 
         {/* RUL Quantile Distribution (5 cols) */}
-        <div className="lg:col-span-5 bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-white border border-[#E3E3DE] rounded p-4 flex flex-col justify-between space-y-3">
           <div>
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
+            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
               Remaining Useful Life (RUL) Distribution
             </h3>
-            <p className="text-[11px] text-slate-400 font-mono mb-4">
+            <p className="text-[11px] text-[#5C5C57] mb-3">
               Multi-quantile LightGBM regression estimate with asymmetric risk weighting
             </p>
 
-            <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-xl space-y-4 font-mono">
+            <div className="p-3.5 bg-[#FAFAF8] border border-[#E3E3DE] rounded space-y-3 font-mono">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-rose-400 font-semibold">P10 (Pessimistic)</span>
-                <span className="text-sm font-bold text-white">{Math.round(rulP10)} Days</span>
+                <span className="text-[#B3402F] font-semibold">P10 (Pessimistic)</span>
+                <span className="text-sm font-semibold text-[#1A1A1A] tabular-nums">{Math.round(rulP10)} Days</span>
               </div>
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-blue-400 font-semibold">P50 (Median Expectation)</span>
-                <span className="text-base font-bold text-cyan-300">{Math.round(rulP50)} Days</span>
+                <span className="text-[#2F5D8A] font-semibold">P50 (Median Expectation)</span>
+                <span className="text-base font-semibold text-[#2F5D8A] tabular-nums">{Math.round(rulP50)} Days</span>
               </div>
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-emerald-400 font-semibold">P90 (Optimistic)</span>
-                <span className="text-sm font-bold text-white">{Math.round(rulP90)} Days</span>
+                <span className="text-[#2E7D4F] font-semibold">P90 (Optimistic)</span>
+                <span className="text-sm font-semibold text-[#1A1A1A] tabular-nums">{Math.round(rulP90)} Days</span>
               </div>
 
               {/* Visual Interval Bar */}
               <div className="pt-2">
-                <div className="w-full bg-slate-800 h-2.5 rounded-full relative overflow-hidden">
+                <div className="w-full bg-[#E3E3DE] h-2 rounded-full relative overflow-hidden">
                   <div
-                    className="absolute bg-blue-500/80 h-full rounded"
+                    className="absolute bg-[#4F759B] h-full rounded"
                     style={{
                       left: `${Math.min(90, Math.max(5, (rulP10 / 60) * 100))}%`,
                       width: `${Math.min(90, Math.max(10, ((rulP90 - rulP10) / 60) * 100))}%`,
                     }}
                   />
                   <div
-                    className="absolute w-2 h-full bg-cyan-300"
+                    className="absolute w-1.5 h-full bg-[#2F5D8A]"
                     style={{ left: `${Math.min(95, Math.max(5, (rulP50 / 60) * 100))}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                <div className="flex justify-between text-[10px] text-[#5C5C57] mt-1 font-mono">
                   <span>0 days</span>
                   <span>Horizon 60 days</span>
                 </div>
@@ -547,10 +531,10 @@ export const ComponentHealthPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-3 bg-blue-950/30 border border-blue-800/40 rounded-lg text-xs font-mono text-blue-300 flex items-start space-x-2">
-            <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+          <div className="p-2.5 bg-[#FAFAF8] border border-[#E3E3DE] rounded text-xs font-mono text-[#5C5C57] flex items-start space-x-2">
+            <Info className="w-3.5 h-3.5 text-[#2F5D8A] mt-0.5 flex-shrink-0" />
             <span>
-              Target replace-before interval: <strong>{Math.round(Math.max(1, rulP10))} days</strong> before high
+              Target replace-before interval: <strong className="text-[#1A1A1A]">{Math.round(Math.max(1, rulP10))} days</strong> before high
               unplanned failure probability.
             </span>
           </div>
@@ -558,13 +542,13 @@ export const ComponentHealthPage: React.FC = () => {
       </div>
 
       {/* 6. Maintenance & Replacement History Table */}
-      <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
-        <div className="flex items-center justify-between">
+      <div className="bg-white border border-[#E3E3DE] rounded p-4 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#ECECE8]">
           <div>
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-slate-200">
+            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
               Component Life Cycle & Maintenance History
             </h3>
-            <p className="text-[11px] text-slate-400 font-mono">
+            <p className="text-[11px] text-[#5C5C57]">
               Physical installations, bench check tests, and overhaul records
             </p>
           </div>

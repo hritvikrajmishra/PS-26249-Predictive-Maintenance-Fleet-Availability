@@ -27,9 +27,9 @@ const ProtectedLayout: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#070b14] flex flex-col justify-center items-center font-mono text-slate-400">
-        <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
-        <span className="text-xs uppercase tracking-wider">Initializing AeroPulse Session...</span>
+      <div className="min-h-screen bg-[#F6F6F3] flex flex-col justify-center items-center font-mono text-[#5C5C57]">
+        <div className="h-6 w-6 border-2 border-[#2F5D8A] border-t-transparent rounded-full animate-spin mb-3" />
+        <span className="text-xs uppercase tracking-wider font-mono">Initializing Session...</span>
       </div>
     );
   }

@@ -3,7 +3,16 @@
  * Typed HTTP client with token handling, baseUrl configuration, and error parsing.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+function getApiBase(): string {
+  let raw = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+  raw = raw.trim().replace(/\/+$/, '');
+  if (!raw.endsWith('/api/v1')) {
+    raw = `${raw}/api/v1`;
+  }
+  return raw;
+}
+
+const API_BASE = getApiBase();
 
 export class ApiError extends Error {
   status: number;
@@ -33,7 +42,8 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${cleanEndpoint}`;
   const token = getStoredToken();
 
   const headers: Record<string, string> = {

@@ -34,11 +34,19 @@ frontend/playwright-report/
 # Data & Models (generated artifacts)
 data/*
 !data/.gitkeep
+
 models/*
 !models/.gitkeep
+!models/*/
+!models/**/*.joblib
+!models/**/*.json
 reports/*
 !reports/.gitkeep
 !reports/*.md
+
+# Screenshots
+docs/screenshots/*
+!docs/screenshots/README.md
 
 # IDE & OS
 .vscode/

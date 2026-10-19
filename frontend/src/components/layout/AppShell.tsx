@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
-  Activity,
-  Plane,
-  Cpu,
-  AlertTriangle,
-  CalendarDays,
-  Package,
-  Sliders,
   LogOut,
   Bell,
-  CheckCircle2,
+  Check,
   X,
   Menu,
 } from 'lucide-react';
@@ -40,71 +33,67 @@ export const AppShell: React.FC = () => {
   };
 
   const navItems = [
-    { to: '/dashboard', label: 'Fleet Dashboard', icon: <Activity className="w-4 h-4" /> },
-    { to: '/aircraft', label: 'Aircraft Detail & Twin', icon: <Plane className="w-4 h-4" /> },
-    { to: '/components', label: 'Component Health', icon: <Cpu className="w-4 h-4" /> },
+    { to: '/dashboard', label: 'Fleet Dashboard' },
+    { to: '/aircraft', label: 'Aircraft Detail & Twin' },
+    { to: '/components', label: 'Component Health' },
     {
       to: '/advisories',
       label: 'Predictive Queue',
-      icon: <AlertTriangle className="w-4 h-4" />,
       badge: p1Count + p2Count > 0 ? `${p1Count + p2Count}` : undefined,
-      badgeColor: p1Count > 0 ? 'bg-rose-600' : 'bg-amber-600',
     },
-    { to: '/planning', label: 'Planning & Work Orders', icon: <CalendarDays className="w-4 h-4" /> },
-    { to: '/spares', label: 'Spares Inventory', icon: <Package className="w-4 h-4" /> },
-    { to: '/scenarios', label: 'Scenario Simulator', icon: <Sliders className="w-4 h-4" /> },
+    { to: '/planning', label: 'Planning & Work Orders' },
+    { to: '/spares', label: 'Spares Inventory' },
+    { to: '/scenarios', label: 'Scenario Simulator' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#F6F6F3] text-[#1A1A1A] flex flex-col font-sans">
       {/* 1. Mandatory Top Notice: Synthetic Data Only */}
       <SyntheticNotice />
 
       {/* 2. Top Header Navigation Bar */}
-      <header className="w-full bg-[#0a0f1d]/90 border-b border-slate-800/80 px-4 py-2.5 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md">
+      <header className="w-full bg-white border-b border-[#E3E3DE] px-4 py-2 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800"
+            className="md:hidden p-1.5 rounded border border-[#E3E3DE] text-[#5C5C57] hover:bg-[#F6F6F3]"
+            aria-label="Toggle navigation menu"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-4 h-4" />
           </button>
 
           <div
             onClick={() => navigate('/dashboard')}
             className="flex items-center space-x-2.5 cursor-pointer select-none"
           >
-            <div className="h-8 w-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold">
-              <Activity className="w-5 h-5" />
+            <div className="h-7 w-7 rounded bg-[#2F5D8A] text-white flex items-center justify-center font-mono font-semibold text-xs">
+              AP
             </div>
-            <div>
-              <div className="text-xs font-bold uppercase tracking-wider font-mono text-white flex items-center gap-1.5">
-                <span>AeroPulse</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-900/60 text-blue-300 border border-blue-600/40 font-mono">
-                  PS-26249
-                </span>
-              </div>
-              <div className="text-[10px] text-slate-400 hidden sm:block font-mono">
-                Predictive Maintenance & Fleet Availability Platform
-              </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-semibold text-[#1A1A1A] tracking-tight">
+                AeroPulse
+              </span>
+              <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-[#F0F0EC] text-[#5C5C57] border border-[#E3E3DE]">
+                PS-26249
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Global Controls: As-Of Time-Replay Bar & Alert Bell & User Profile */}
-        <div className="flex items-center space-x-2 sm:space-x-3 text-xs font-mono">
+        {/* Global Controls: As-Of Time-Replay Bar & Alerts & User Role */}
+        <div className="flex items-center space-x-2.5 text-xs font-mono">
           <TimeReplayControl />
 
-          {/* Active Alerts Bell */}
+          {/* Active Alerts Button */}
           <div className="relative">
             <button
               onClick={() => setAlertsOpen(!alertsOpen)}
-              className="p-1.5 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 relative"
+              className="p-1.5 rounded border border-[#E3E3DE] bg-white text-[#5C5C57] hover:bg-[#F6F6F3] hover:text-[#1A1A1A] relative flex items-center gap-1.5"
               title="Active platform alerts"
             >
-              <Bell className="w-4 h-4" />
+              <Bell className="w-3.5 h-3.5 text-[#5C5C57]" />
               {unackAlerts.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] flex items-center justify-center font-bold animate-pulse">
+                <span className="text-[11px] font-mono font-semibold text-[#B3402F]">
                   {unackAlerts.length}
                 </span>
               )}
@@ -112,58 +101,73 @@ export const AppShell: React.FC = () => {
 
             {/* Alerts Dropdown Modal */}
             {alertsOpen && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#0e1629] border border-slate-700 rounded-xl shadow-2xl p-4 z-50">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="font-semibold text-xs uppercase tracking-wider text-slate-200">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-[#E3E3DE] rounded shadow-[0_4px_16px_rgba(0,0,0,0.08)] p-3.5 z-50">
+                <div className="flex items-center justify-between pb-2 border-b border-[#ECECE8]">
+                  <span className="font-semibold text-xs text-[#1A1A1A]">
                     Active Operational Alerts ({unackAlerts.length})
                   </span>
-                  <button onClick={() => setAlertsOpen(false)} className="text-slate-400 hover:text-white">
-                    <X className="w-4 h-4" />
+                  <button
+                    onClick={() => setAlertsOpen(false)}
+                    className="text-[#5C5C57] hover:text-[#1A1A1A]"
+                  >
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <div className="mt-2 space-y-2 max-h-72 overflow-y-auto pr-1">
                   {unackAlerts.length === 0 ? (
-                    <div className="text-center py-4 text-xs text-slate-500">No active alerts pending.</div>
+                    <div className="text-center py-4 text-xs text-[#5C5C57]">No active alerts pending.</div>
                   ) : (
-                    unackAlerts.map((a) => (
-                      <div
-                        key={a.alert_id}
-                        className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 text-xs space-y-1.5"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                              a.severity === 'critical'
-                                ? 'bg-rose-950 text-rose-300 border border-rose-600/40'
-                                : 'bg-amber-950 text-amber-300 border border-amber-600/40'
-                            }`}
-                          >
-                            {a.severity} • {a.type}
-                          </span>
-                          <button
-                            onClick={() => ackMutation.mutate({ id: a.alert_id, ack: true })}
-                            className="text-[10px] text-blue-400 hover:underline flex items-center gap-0.5"
-                          >
-                            <CheckCircle2 className="w-3 h-3" /> Ack
-                          </button>
+                    unackAlerts.map((a) => {
+                      const isCritical = a.severity === 'critical';
+                      return (
+                        <div
+                          key={a.alert_id}
+                          className="p-2.5 rounded bg-[#FAFAF8] border border-[#E3E3DE] text-xs space-y-1"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1.5 text-[11px] font-mono">
+                              <span
+                                className={`w-2 h-2 rounded-full ${
+                                  isCritical ? 'bg-[#B3402F]' : 'bg-[#A66A00]'
+                                }`}
+                              />
+                              <span className="font-semibold text-[#1A1A1A] uppercase">
+                                {a.severity} • {a.type}
+                              </span>
+                            </span>
+                            <button
+                              onClick={() => ackMutation.mutate({ id: a.alert_id, ack: true })}
+                              className="text-[11px] text-[#2F5D8A] hover:underline flex items-center gap-0.5 font-mono"
+                            >
+                              <Check className="w-3 h-3" /> Ack
+                            </button>
+                          </div>
+                          <p className="text-[#1A1A1A] text-xs leading-snug">{a.message}</p>
+                          <div className="text-[11px] text-[#5C5C57] font-mono">
+                            {new Date(a.created_at).toLocaleString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </div>
                         </div>
-                        <p className="text-slate-200 text-[11px] leading-tight">{a.message}</p>
-                        <div className="text-[10px] text-slate-500">{new Date(a.created_at).toLocaleString()}</div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Role Switcher & User Profile */}
-          <div className="flex items-center space-x-2 pl-2 border-l border-slate-800">
-            <span className="hidden md:inline text-[11px] text-slate-400">Role:</span>
+          {/* Role Switcher & User Signout */}
+          <div className="flex items-center space-x-2 pl-2 border-l border-[#E3E3DE]">
+            <span className="hidden md:inline text-xs text-[#5C5C57]">Role:</span>
             <select
               value={role || 'commander'}
               onChange={(e) => handleRoleChange(e.target.value as UserRole)}
-              className="bg-slate-900 border border-slate-700 text-cyan-300 font-semibold text-xs rounded px-2 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer uppercase font-mono"
+              className="bg-white border border-[#E3E3DE] text-[#1A1A1A] text-xs rounded px-2 py-1 font-mono focus:outline-none focus:border-[#2F5D8A] cursor-pointer"
             >
               <option value="commander">Commander</option>
               <option value="planner">Planner</option>
@@ -172,26 +176,26 @@ export const AppShell: React.FC = () => {
 
             <button
               onClick={logout}
-              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 rounded transition"
+              className="p-1.5 text-[#5C5C57] hover:text-[#B3402F] hover:bg-[#F6F6F3] rounded transition"
               title={`Sign out (${user?.username || 'demo'})`}
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* 3. Main Workspace Layout: Sidebar + Page Outlet */}
+      {/* 3. Main Workspace Layout: Flat Gray Sidebar + Content */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Sidebar Navigation */}
         <aside
-          className={`w-full md:w-60 bg-[#080d1a] border-r border-slate-800/80 flex flex-col justify-between py-4 px-3 flex-shrink-0 ${
+          className={`w-full md:w-56 bg-[#EFEFEB] border-r border-[#E3E3DE] flex flex-col justify-between py-3 flex-shrink-0 ${
             mobileMenuOpen ? 'block' : 'hidden md:flex'
           }`}
         >
-          <div className="space-y-1">
-            <div className="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">
-              Mission Modules
+          <div className="space-y-0.5">
+            <div className="px-4 pb-2 text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
+              Navigation
             </div>
 
             {navItems.map((item) => (
@@ -200,21 +204,16 @@ export const AppShell: React.FC = () => {
                 to={item.to}
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                  `flex items-center justify-between px-4 py-2 text-xs font-mono transition-colors border-l-[3px] ${
                     isActive
-                      ? 'bg-blue-600/20 text-white border border-blue-500/40 shadow-sm'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                      ? 'border-[#2F5D8A] bg-white text-[#1A1A1A] font-semibold'
+                      : 'border-transparent text-[#5C5C57] hover:bg-[#E7E7E3] hover:text-[#1A1A1A]'
                   }`
                 }
               >
-                <div className="flex items-center space-x-2.5">
-                  <span className="text-blue-400">{item.icon}</span>
-                  <span>{item.label}</span>
-                </div>
+                <span>{item.label}</span>
                 {item.badge && (
-                  <span
-                    className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full text-white ${item.badgeColor || 'bg-blue-600'}`}
-                  >
+                  <span className="text-[11px] font-mono px-1.5 py-0.2 rounded bg-[#FDF2F0] text-[#B3402F] border border-[#F5C2BC] font-semibold">
                     {item.badge}
                   </span>
                 )}
@@ -223,21 +222,21 @@ export const AppShell: React.FC = () => {
           </div>
 
           {/* Sidebar Footer Info */}
-          <div className="pt-4 border-t border-slate-800/80 px-3 text-[11px] font-mono text-slate-500 space-y-1">
+          <div className="pt-3 border-t border-[#E3E3DE] px-4 text-xs font-mono text-[#5C5C57] space-y-1">
             <div className="flex justify-between">
               <span>Fleet Airframes:</span>
-              <span className="text-slate-300 font-bold">{summary?.total_aircraft ?? 40}</span>
+              <span className="text-[#1A1A1A] font-semibold">{summary?.total_aircraft ?? 40}</span>
             </div>
             <div className="flex justify-between">
               <span>Serviceable:</span>
-              <span className="text-emerald-400 font-bold">{summary?.serviceable_count ?? '—'}</span>
+              <span className="text-[#2E7D4F] font-semibold">{summary?.serviceable_count ?? '—'}</span>
             </div>
-            <div className="text-[10px] text-slate-600 pt-1">Environment: Native Localhost</div>
+            <div className="text-[11px] text-[#8A8A84] pt-1">Operations Console</div>
           </div>
         </aside>
 
-        {/* Content Outlet */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#070b14]">
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#F6F6F3]">
           <Outlet />
         </main>
       </div>

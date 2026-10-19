@@ -40,61 +40,61 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b14] flex flex-col justify-center items-center p-4 selection:bg-blue-600 selection:text-white font-mono">
+    <div className="min-h-screen bg-[#F6F6F3] flex flex-col justify-center items-center p-4 selection:bg-[#2F5D8A] selection:text-white font-sans text-[#1A1A1A]">
       {/* Top Banner */}
-      <div className="max-w-md w-full mb-6 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center space-x-2 text-xs text-amber-300">
-        <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
+      <div className="max-w-md w-full mb-4 p-2.5 rounded border border-[#F2D7B3] bg-[#FEF7ED] flex items-center space-x-2 text-xs text-[#8A5314] font-mono">
+        <ShieldAlert className="w-4 h-4 text-[#8A5314] flex-shrink-0" />
         <span>[SYNTHETIC DATA ONLY] — Simulated Decision-Support Platform</span>
       </div>
 
-      <div className="max-w-md w-full bg-[#0e1629] border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+      <div className="max-w-md w-full bg-white border border-[#E3E3DE] rounded-md p-8 shadow-[0_4px_16px_rgba(0,0,0,0.06)] space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 rounded-xl bg-blue-600/20 border border-blue-500/40 items-center justify-center text-blue-400 mb-1">
-            <Activity className="w-6 h-6" />
+          <div className="inline-flex h-11 w-11 rounded border border-[#E3E3DE] bg-[#F6F6F3] items-center justify-center text-[#2F5D8A] mb-1">
+            <Activity className="w-5 h-5" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white uppercase">
+          <h1 className="text-xl font-bold tracking-tight text-[#1A1A1A] uppercase font-mono">
             AeroPulse Cockpit
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#5C5C57]">
             Integrated Predictive Maintenance & Fleet Availability (PS 26249)
           </p>
         </div>
 
         {error && (
-          <div className="p-3 bg-rose-950/60 border border-rose-600/40 rounded-lg text-xs text-rose-300">
+          <div className="p-3 bg-[#FDF2F2] border border-[#F5C2C0] rounded text-xs text-[#B3402F] font-mono">
             {error}
           </div>
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs font-mono">
           <div>
-            <label className="block text-slate-400 mb-1">Username</label>
+            <label className="block text-[#5C5C57] font-semibold mb-1">Username</label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <User className="w-4 h-4 text-[#8C8C85] absolute left-3 top-2.5" />
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="commander / planner / technician"
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-white border border-[#D5D5CF] rounded pl-9 pr-3 py-2 text-[#1A1A1A] placeholder-[#8C8C85] focus:outline-none focus:border-[#2F5D8A] focus:ring-1 focus:ring-[#2F5D8A]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-400 mb-1">Password</label>
+            <label className="block text-[#5C5C57] font-semibold mb-1">Password</label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3 top-2.5" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-white border border-[#D5D5CF] rounded pl-9 pr-3 py-2 text-[#1A1A1A] placeholder-[#8C8C85] focus:outline-none focus:border-[#2F5D8A] focus:ring-1 focus:ring-[#2F5D8A]"
               />
             </div>
           </div>
@@ -102,7 +102,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-semibold flex items-center justify-center space-x-1.5 transition shadow-lg shadow-blue-900/30"
+            className="w-full py-2.5 px-4 bg-[#2F5D8A] hover:bg-[#264A6E] disabled:opacity-50 text-white rounded font-semibold flex items-center justify-center space-x-1.5 transition shadow-sm"
           >
             <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
             <ArrowRight className="w-4 h-4" />
@@ -110,26 +110,26 @@ export const LoginPage: React.FC = () => {
         </form>
 
         {/* Quick Demo Logins */}
-        <div className="pt-4 border-t border-slate-800 space-y-2">
-          <div className="text-[11px] text-slate-400 uppercase tracking-wider text-center">
+        <div className="pt-4 border-t border-[#E3E3DE] space-y-2">
+          <div className="text-[11px] font-semibold text-[#5C5C57] uppercase tracking-wider text-center">
             Quick 1-Click Demo Profiles
           </div>
-          <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="grid grid-cols-3 gap-2 text-xs font-mono">
             <button
               onClick={() => handleQuickLogin('commander')}
-              className="py-1.5 px-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded text-cyan-300 font-semibold text-center transition"
+              className="py-1.5 px-2 bg-[#F6F6F3] hover:bg-[#EAEAE7] border border-[#D5D5CF] rounded text-[#1A1A1A] font-semibold text-center transition"
             >
               Commander
             </button>
             <button
               onClick={() => handleQuickLogin('planner')}
-              className="py-1.5 px-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded text-blue-300 font-semibold text-center transition"
+              className="py-1.5 px-2 bg-[#F6F6F3] hover:bg-[#EAEAE7] border border-[#D5D5CF] rounded text-[#1A1A1A] font-semibold text-center transition"
             >
               Planner
             </button>
             <button
               onClick={() => handleQuickLogin('technician')}
-              className="py-1.5 px-2 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded text-emerald-300 font-semibold text-center transition"
+              className="py-1.5 px-2 bg-[#F6F6F3] hover:bg-[#EAEAE7] border border-[#D5D5CF] rounded text-[#1A1A1A] font-semibold text-center transition"
             >
               Technician
             </button>
