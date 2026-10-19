@@ -4,10 +4,13 @@ import { availabilityKeys } from './useAvailabilityQueries';
 
 export const engineKeys = {
   all: ['engine'] as const,
-  predictions: (params?: Record<string, unknown>) => [...engineKeys.all, 'predictions', params] as const,
-  advisories: (params?: Record<string, unknown>) => [...engineKeys.all, 'advisories', params] as const,
+  predictions: (params?: Record<string, unknown>) =>
+    params !== undefined ? ([...engineKeys.all, 'predictions', params] as const) : ([...engineKeys.all, 'predictions'] as const),
+  advisories: (params?: Record<string, unknown>) =>
+    params !== undefined ? ([...engineKeys.all, 'advisories', params] as const) : ([...engineKeys.all, 'advisories'] as const),
   advisory: (id: string) => [...engineKeys.all, 'advisory', id] as const,
-  alerts: (params?: Record<string, unknown>) => [...engineKeys.all, 'alerts', params] as const,
+  alerts: (params?: Record<string, unknown>) =>
+    params !== undefined ? ([...engineKeys.all, 'alerts', params] as const) : ([...engineKeys.all, 'alerts'] as const),
 };
 
 export function usePredictions(params?: {
@@ -56,8 +59,9 @@ export function useUpdateAdvisory() {
     mutationFn: ({ id, payload }: { id: string; payload: { status: string; reason?: string } }) =>
       engineApi.updateAdvisory(id, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: engineKeys.advisories() });
+      queryClient.invalidateQueries({ queryKey: ['engine', 'advisories'] });
       queryClient.invalidateQueries({ queryKey: availabilityKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['maintenance'] });
     },
   });
 }

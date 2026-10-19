@@ -14,7 +14,7 @@ import { useKpis, useFleetSummary, useAvailabilityTrend } from '../hooks/useAvai
 import { useFleetTwin } from '../hooks/useTwinQueries';
 import { useAdvisories, useAlerts } from '../hooks/useEngineQueries';
 import { useWorkOrders } from '../hooks/useMaintenanceQueries';
-import { useSystems } from '../hooks/useFleetQueries';
+import { useSystems, useAircraftList } from '../hooks/useFleetQueries';
 import type { AdvisoryOut, WorkOrderOut } from '../types/api';
 
 export const FleetDashboardPage: React.FC = () => {
@@ -31,6 +31,7 @@ export const FleetDashboardPage: React.FC = () => {
   const { data: trendData, isLoading: loadingTrend } = useAvailabilityTrend(30, asOfDate);
   const { data: fleetTwin, isLoading: loadingTwin } = useFleetTwin(asOfDate);
   const { data: systemsData } = useSystems();
+  const { data: aircraftData } = useAircraftList({ page_size: 100 });
   const { data: topAdvisories, isLoading: loadingAdvisories } = useAdvisories({
     status: 'proposed',
     page_size: 10,
@@ -39,6 +40,41 @@ export const FleetDashboardPage: React.FC = () => {
     page_size: 8,
   });
   const { data: alertsData } = useAlerts({ acknowledged: false, page_size: 3 });
+
+  // Map of aircraft_id -> base_id
+  const aircraftBaseMap = useMemo(() => {
+    const map = new Map<string, string>();
+    aircraftData?.items.forEach((a) => {
+      if (a.base_id) map.set(a.aircraft_id, a.base_id);
+    });
+    return map;
+  }, [aircraftData]);
+
+  // Dynamic Base Dropdown Options
+  const baseOptions = useMemo(() => {
+    if (!aircraftData?.items) {
+      return [
+        { value: 'all', label: 'All Squadrons' },
+        { value: 'BASE-NORTH', label: 'Base-North (Forward)' },
+        { value: 'BASE-SOUTH', label: 'Base-South (Main)' },
+        { value: 'BASE-EAST', label: 'Base-East' },
+        { value: 'BASE-WEST', label: 'Base-West' },
+      ];
+    }
+    const rawBases = Array.from(new Set(aircraftData.items.map((a) => a.base_id).filter(Boolean))) as string[];
+    const sorted = rawBases.sort();
+    return [
+      { value: 'all', label: 'All Squadrons' },
+      ...sorted.map((b) => {
+        let label = b;
+        if (b.toUpperCase() === 'BASE-NORTH') label = 'Base-North (Forward)';
+        else if (b.toUpperCase() === 'BASE-SOUTH') label = 'Base-South (Main Depot)';
+        else if (b.toUpperCase() === 'BASE-EAST') label = 'Base-East';
+        else if (b.toUpperCase() === 'BASE-WEST') label = 'Base-West';
+        return { value: b, label };
+      }),
+    ];
+  }, [aircraftData]);
 
   // 1. Prepare Availability Trend Series with Forecast Shading
   const { trendSeries, forecastStart } = useMemo(() => {
@@ -114,10 +150,22 @@ export const FleetDashboardPage: React.FC = () => {
     ];
 
     fleetTwin.aircraft.forEach((ac) => {
+      // Filter by Base if specified
+      if (selectedBase !== 'all') {
+        const acBase = aircraftBaseMap.get(ac.aircraft_id);
+        if (acBase && acBase.toLowerCase() !== selectedBase.toLowerCase()) {
+          return;
+        }
+      }
+
       // Filter by system if specified
       systemsList.forEach((sys) => {
-        if (selectedSystem !== 'all' && !sys.name.toLowerCase().includes(selectedSystem.toLowerCase())) {
-          return;
+        if (selectedSystem !== 'all') {
+          const sysName = sys.name.toLowerCase();
+          const target = selectedSystem.toLowerCase();
+          if (!sysName.includes(target) && !target.includes(sysName)) {
+            return;
+          }
         }
 
         // Check if driver component belongs to this system
@@ -138,7 +186,7 @@ export const FleetDashboardPage: React.FC = () => {
     });
 
     return cells;
-  }, [fleetTwin, systemsData, selectedSystem]);
+  }, [fleetTwin, systemsData, selectedSystem, selectedBase, aircraftBaseMap]);
 
   // 3. Advisory Table Columns
   const advisoryColumns: Column<AdvisoryOut>[] = [
@@ -239,7 +287,80 @@ export const FleetDashboardPage: React.FC = () => {
 
   const downtime = kpis?.downtime_by_cause;
   const stateBreakdown = summary?.by_state || {};
-  const availValue = (summary?.availability_pct ?? kpis?.fleet_availability_pct ?? 0).toFixed(1);
+
+  // Filtered Advisories based on selectedSystem and selectedBase
+  const filteredAdvisories = useMemo(() => {
+    if (!topAdvisories?.items) return [];
+    return topAdvisories.items.filter((adv) => {
+      if (selectedSystem !== 'all' && adv.system_name) {
+        const sysName = adv.system_name.toLowerCase();
+        const target = selectedSystem.toLowerCase();
+        if (!sysName.includes(target) && !target.includes(sysName)) return false;
+      }
+      if (selectedBase !== 'all' && adv.aircraft_id) {
+        const acBase = aircraftBaseMap.get(adv.aircraft_id);
+        if (acBase && acBase.toLowerCase() !== selectedBase.toLowerCase()) return false;
+      }
+      return true;
+    });
+  }, [topAdvisories, selectedSystem, selectedBase, aircraftBaseMap]);
+
+  // Filtered Work Orders based on selectedBase
+  const filteredWorkOrders = useMemo(() => {
+    if (!upcomingOrders?.items) return [];
+    return upcomingOrders.items.filter((wo) => {
+      if (selectedBase !== 'all' && wo.aircraft_id) {
+        const acBase = aircraftBaseMap.get(wo.aircraft_id);
+        if (acBase && acBase.toLowerCase() !== selectedBase.toLowerCase()) return false;
+      }
+      return true;
+    });
+  }, [upcomingOrders, selectedBase, aircraftBaseMap]);
+
+  // Base-scoped aircraft for KPI calculation
+  const baseAircraft = useMemo(() => {
+    if (!aircraftData?.items) return [];
+    if (selectedBase === 'all') return aircraftData.items;
+    return aircraftData.items.filter((a) => a.base_id?.toLowerCase() === selectedBase.toLowerCase());
+  }, [aircraftData, selectedBase]);
+
+  // Base-scoped or fleet-wide availability calculation
+  const displayedAvailability = useMemo(() => {
+    if (selectedBase === 'all') {
+      return (summary?.availability_pct ?? kpis?.fleet_availability_pct ?? 0).toFixed(1);
+    }
+    if (baseAircraft.length === 0) return '0.0';
+    const availCount = baseAircraft.filter((a) => a.current_status.toLowerCase() === 'available').length;
+    return ((availCount / baseAircraft.length) * 100).toFixed(1);
+  }, [selectedBase, baseAircraft, summary, kpis]);
+
+  // Base-scoped or fleet-wide serviceable breakdown
+  const displayedServiceable = useMemo(() => {
+    if (selectedBase === 'all') {
+      return {
+        count: summary?.serviceable_count ?? '—',
+        total: summary?.total_aircraft ?? 40,
+        sub: `${stateBreakdown['Unscheduled Repair'] || 0} unscheduled • ${stateBreakdown['Awaiting Spares'] || 0} supply hold`,
+      };
+    }
+    const avail = baseAircraft.filter((a) => a.current_status.toLowerCase() === 'available').length;
+    const unsched = baseAircraft.filter((a) => a.current_status.toLowerCase().includes('unscheduled') || a.current_status.toLowerCase().includes('repair')).length;
+    const supply = baseAircraft.filter((a) => a.current_status.toLowerCase().includes('spares') || a.current_status.toLowerCase().includes('supply')).length;
+    return {
+      count: avail,
+      total: baseAircraft.length,
+      sub: `${unsched} unscheduled • ${supply} supply hold`,
+    };
+  }, [selectedBase, baseAircraft, summary, stateBreakdown]);
+
+  const p1Count = useMemo(() => filteredAdvisories.filter((a) => a.priority === 'P1').length, [filteredAdvisories]);
+  const p2Count = useMemo(() => filteredAdvisories.filter((a) => a.priority === 'P2').length, [filteredAdvisories]);
+  const totalActiveAdvisories = useMemo(() => {
+    if (selectedSystem === 'all' && selectedBase === 'all') {
+      return (summary?.open_p1 || 0) + (summary?.open_p2 || 0);
+    }
+    return p1Count + p2Count;
+  }, [selectedSystem, selectedBase, summary, p1Count, p2Count]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -298,11 +419,25 @@ export const FleetDashboardPage: React.FC = () => {
               onChange={(e) => setSelectedBase(e.target.value)}
               className="bg-transparent text-[#1A1A1A] focus:outline-none cursor-pointer border-none p-0"
             >
-              <option value="all">All Squadrons</option>
-              <option value="Base-North">Base-North (Forward)</option>
-              <option value="Base-South">Base-South (Main)</option>
+              {baseOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
+
+          {(selectedSystem !== 'all' || selectedBase !== 'all') && (
+            <button
+              onClick={() => {
+                setSelectedSystem('all');
+                setSelectedBase('all');
+              }}
+              className="px-2 py-1 text-[11px] text-[#2F5D8A] bg-[#EBF2F7] hover:bg-[#DCE7F0] border border-[#C5D7E8] rounded font-mono transition"
+            >
+              Reset Filters ×
+            </button>
+          )}
         </div>
       </div>
 
@@ -313,14 +448,16 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/scenarios')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            Fleet Availability (Ao)
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            {selectedBase === 'all' ? 'Fleet availability (Ao)' : `${selectedBase} availability`}
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
-              {loadingSummary && loadingKpis ? '—' : `${availValue}%`}
+              {loadingSummary && loadingKpis ? '—' : `${displayedAvailability}%`}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">/ target ≥75%</span>
+            <span className="text-xs text-[#5C5C57]">
+              {selectedBase === 'all' ? '/ target ≥75%' : `/ ${baseAircraft.length} squadron total`}
+            </span>
           </div>
           <div className="mt-1 text-[11px] text-[#5C5C57] flex justify-between">
             <span>Forecast 30d: 74.2%</span>
@@ -333,17 +470,19 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/aircraft')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            Serviceable Airframes
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            Serviceable airframes
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
-              {summary?.serviceable_count ?? '—'}
+              {displayedServiceable.count}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">/ {summary?.total_aircraft ?? 40} fleet</span>
+            <span className="text-xs text-[#5C5C57]">
+              / {displayedServiceable.total} {selectedBase === 'all' ? 'fleet' : 'squadron'}
+            </span>
           </div>
           <div className="mt-1 text-[11px] text-[#5C5C57] truncate">
-            {stateBreakdown['Unscheduled Repair'] || 0} unscheduled • {stateBreakdown['Awaiting Spares'] || 0} supply hold
+            {displayedServiceable.sub}
           </div>
         </div>
 
@@ -352,18 +491,20 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/advisories')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            P1 / P2 Active Advisories
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            P1 / P2 active advisories
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
-              {(summary?.open_p1 || 0) + (summary?.open_p2 || 0)}
+              {totalActiveAdvisories}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">action items</span>
+            <span className="text-xs text-[#5C5C57]">
+              {selectedSystem !== 'all' || selectedBase !== 'all' ? 'matching items' : 'action items'}
+            </span>
           </div>
           <div className="mt-1 text-[11px] text-[#5C5C57]">
-            <span className="text-[#B3402F] font-semibold">{summary?.open_p1 || 0} Critical</span> •{' '}
-            <span className="text-[#A66A00] font-semibold">{summary?.open_p2 || 0} High</span>
+            <span className="text-[#B3402F] font-semibold">{selectedSystem === 'all' && selectedBase === 'all' ? (summary?.open_p1 || 0) : p1Count} Critical</span> •{' '}
+            <span className="text-[#A66A00] font-semibold">{selectedSystem === 'all' && selectedBase === 'all' ? (summary?.open_p2 || 0) : p2Count} High</span>
           </div>
         </div>
 
@@ -372,14 +513,14 @@ export const FleetDashboardPage: React.FC = () => {
           onClick={() => navigate('/spares')}
           className="p-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
         >
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-            Spares at Risk & Backlog
+          <div className="text-[11px] font-sans text-[#5C5C57] font-semibold">
+            Spares at risk & backlog
           </div>
           <div className="flex items-baseline space-x-1.5 mt-1">
             <span className="text-2xl font-semibold font-mono text-[#1A1A1A] tabular-nums">
               {summary?.parts_at_risk || 0}
             </span>
-            <span className="text-xs text-[#5C5C57] font-mono">critical parts</span>
+            <span className="text-xs text-[#5C5C57]">critical parts</span>
           </div>
           <div className="mt-1 text-[11px] text-[#5C5C57] truncate">
             {kpis?.backlog.open_orders || summary?.backlog.open_orders || 0} open WOs ({Math.round(kpis?.backlog.outstanding_man_hours || 0)} hrs)
@@ -393,8 +534,8 @@ export const FleetDashboardPage: React.FC = () => {
         <div className="lg:col-span-2 bg-white border border-[#E3E3DE] rounded p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
-                Fleet Availability Timeline & 30-Day Forward Projection
+              <h3 className="text-xs font-semibold text-[#1A1A1A]">
+                Fleet availability timeline & 30-day forward projection
               </h3>
               <p className="text-[11px] text-[#5C5C57]">
                 Observed availability with P10 / P50 / P90 Monte Carlo projection
@@ -421,8 +562,8 @@ export const FleetDashboardPage: React.FC = () => {
         {/* Downtime by Cause (1 Col) */}
         <div className="bg-white border border-[#E3E3DE] rounded p-4 flex flex-col justify-between">
           <div>
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A] mb-1">
-              Downtime Loss Breakdown
+            <h3 className="text-xs font-semibold text-[#1A1A1A] mb-1">
+              Downtime loss breakdown
             </h3>
             <p className="text-[11px] text-[#5C5C57] mb-3">
               Cumulative aircraft-days lost by operational root cause
@@ -510,44 +651,44 @@ export const FleetDashboardPage: React.FC = () => {
       />
 
       {/* 6. Clean Operations Impact Summary (No gradients, no AI glow) */}
-      <div className="bg-[#FAFAF8] border border-[#E3E3DE] rounded p-4 font-mono space-y-3">
+      <div className="bg-[#FAFAF8] border border-[#E3E3DE] rounded p-4 font-sans space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-[#ECECE8]">
-          <h3 className="font-semibold text-xs uppercase tracking-wider text-[#1A1A1A]">
-            Integrated Maintenance & Availability Impact Summary
+          <h3 className="font-semibold text-xs text-[#1A1A1A]">
+            Integrated maintenance & availability impact summary
           </h3>
-          <span className="text-[11px] font-mono text-[#5C5C57]">
+          <span className="text-[11px] text-[#5C5C57]">
             Synthetic telemetry demonstration
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Availability Uplift</div>
-            <div className="text-lg font-semibold text-[#2E7D4F] tabular-nums">+7.8% Uplift</div>
+            <div className="text-[#5C5C57] text-[11px]">Availability uplift</div>
+            <div className="text-lg font-semibold font-mono text-[#2E7D4F] tabular-nums">+7.8% Uplift</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Fleet readiness elevated from ~74.2% reactive baseline to ~82.0% continuous availability.
             </p>
           </div>
 
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Downtime Reduction</div>
-            <div className="text-lg font-semibold text-[#2F5D8A] tabular-nums">-6.5 Days / Defect</div>
+            <div className="text-[#5C5C57] text-[11px]">Downtime reduction</div>
+            <div className="text-lg font-semibold font-mono text-[#2F5D8A] tabular-nums">-6.5 Days / Defect</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Proactive bundled bay slot requires 2.5d vs 9.0d run-to-failure unscheduled grounding.
             </p>
           </div>
 
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Advance Early Warning</div>
-            <div className="text-lg font-semibold text-[#2F5D8A] tabular-nums">19 Days Lead-Time</div>
+            <div className="text-[#5C5C57] text-[11px]">Advance early warning</div>
+            <div className="text-lg font-semibold font-mono text-[#2F5D8A] tabular-nums">19 Days Lead-Time</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Telemetry anomaly flags deteriorating pump ~19 days prior to functional failure.
             </p>
           </div>
 
           <div className="bg-white border border-[#E3E3DE] rounded p-3 space-y-1">
-            <div className="text-[#5C5C57] text-[11px]">Supply Risk Avoidance</div>
-            <div className="text-lg font-semibold text-[#A66A00] tabular-nums">Zero Spares AOG</div>
+            <div className="text-[#5C5C57] text-[11px]">Supply risk avoidance</div>
+            <div className="text-lg font-semibold font-mono text-[#A66A00] tabular-nums">Zero Spares AOG</div>
             <p className="text-[11px] text-[#5C5C57] leading-snug">
               Integrated logistics triggers 45-day lead-time procurement before depot stockout.
             </p>
@@ -560,22 +701,29 @@ export const FleetDashboardPage: React.FC = () => {
         {/* Top Advisories Table */}
         <div className="bg-white border border-[#E3E3DE] rounded p-4 space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#ECECE8]">
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
-              Top Priority Maintenance Advisories
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-semibold text-[#1A1A1A]">
+                Top priority maintenance advisories
+              </h3>
+              {(selectedSystem !== 'all' || selectedBase !== 'all') && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 bg-[#EDF2F7] text-[#2F5D8A] rounded">
+                  {filteredAdvisories.length} filtered
+                </span>
+              )}
+            </div>
             <button
               onClick={() => navigate('/advisories')}
-              className="text-[11px] font-mono text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
+              className="text-[11px] font-sans text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
             >
-              Full Queue <ArrowRight className="w-3 h-3" />
+              Full queue <ArrowRight className="w-3 h-3" />
             </button>
           </div>
           <DataTable
             columns={advisoryColumns}
-            data={topAdvisories?.items || []}
+            data={filteredAdvisories}
             loading={loadingAdvisories}
             emptyTitle="No Active Advisories"
-            emptyMessage="All airframe subsystems are operating within nominal thresholds."
+            emptyMessage="No open advisories match the active system and base filters."
             onRowClick={(row) => navigate(`/components/${row.component_id}`)}
           />
         </div>
@@ -583,22 +731,29 @@ export const FleetDashboardPage: React.FC = () => {
         {/* Upcoming Work Orders */}
         <div className="bg-white border border-[#E3E3DE] rounded p-4 space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#ECECE8]">
-            <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
-              Active & Upcoming Work Orders
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-semibold text-[#1A1A1A]">
+                Active & upcoming work orders
+              </h3>
+              {selectedBase !== 'all' && (
+                <span className="text-[10px] font-mono px-1.5 py-0.5 bg-[#EDF2F7] text-[#2F5D8A] rounded">
+                  {filteredWorkOrders.length} filtered
+                </span>
+              )}
+            </div>
             <button
               onClick={() => navigate('/planning')}
-              className="text-[11px] font-mono text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
+              className="text-[11px] font-sans text-[#2F5D8A] hover:underline flex items-center gap-1 font-medium"
             >
-              Planning Board <ArrowRight className="w-3 h-3" />
+              Planning board <ArrowRight className="w-3 h-3" />
             </button>
           </div>
           <DataTable
             columns={workOrderColumns}
-            data={upcomingOrders?.items || []}
+            data={filteredWorkOrders}
             loading={loadingOrders}
             emptyTitle="No Active Work Orders"
-            emptyMessage="No open work orders currently scheduled in maintenance bays."
+            emptyMessage="No open work orders currently scheduled for this squadron selection."
             onRowClick={() => navigate('/planning')}
           />
         </div>

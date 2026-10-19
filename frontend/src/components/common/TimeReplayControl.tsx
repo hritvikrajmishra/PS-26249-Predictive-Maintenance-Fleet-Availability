@@ -11,10 +11,10 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 
 export const DEMO_BOOKMARKS = [
-  { label: 'T-20d Base', date: '2025-11-05', desc: 'Baseline nominal operations' },
-  { label: 'T-10d Anom', date: '2025-11-15', desc: 'First sustained anomaly' },
-  { label: 'Hero State', date: '2025-11-25', desc: 'AC-017 hydraulic degradation' },
-  { label: 'Year-End', date: '2025-12-31', desc: 'Full cycle year-end' },
+  { label: 'Baseline', date: '2025-11-05', desc: 'Baseline nominal operations' },
+  { label: 'Early warning', date: '2025-11-15', desc: 'First sustained sensor anomaly' },
+  { label: 'Degradation', date: '2025-11-25', desc: 'Critical AC-017 hydraulic pump degradation' },
+  { label: 'Year-end', date: '2025-12-31', desc: 'Full cycle year-end evaluation' },
 ];
 
 export const TimeReplayControl: React.FC = () => {
@@ -58,11 +58,11 @@ export const TimeReplayControl: React.FC = () => {
   }, [isPlaying, asOfDate, setAsOfDate]);
 
   return (
-    <div className="flex items-center space-x-1 sm:space-x-1.5 bg-white border border-[#E3E3DE] rounded px-2 py-1 font-mono text-xs text-[#1A1A1A]">
-      {/* Replay Label */}
-      <div className="hidden lg:flex items-center space-x-1 text-[#5C5C57] pr-1.5 border-r border-[#ECECE8]">
+    <div className="flex items-center space-x-1 sm:space-x-1.5 bg-white border border-[#E3E3DE] rounded px-2 py-1 font-sans text-xs text-[#1A1A1A]">
+      {/* Scenario Time Group Label */}
+      <div className="hidden lg:flex items-center space-x-1.5 text-[#5C5C57] pr-2 border-r border-[#ECECE8]">
         <Clock className="w-3.5 h-3.5 text-[#2F5D8A]" />
-        <span className="text-[11px] uppercase font-semibold tracking-wider text-[#5C5C57]">Replay</span>
+        <span className="text-xs font-sans font-medium text-[#5C5C57] whitespace-nowrap">Scenario time</span>
       </div>
 
       {/* Quick Jump Bookmarks */}
@@ -77,9 +77,9 @@ export const TimeReplayControl: React.FC = () => {
                 setAsOfDate(bm.date);
               }}
               title={`${bm.label} (${bm.date}): ${bm.desc}`}
-              className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
+              className={`px-2 py-0.5 rounded text-xs font-sans transition ${
                 isActive
-                  ? 'bg-[#2F5D8A] text-white font-semibold'
+                  ? 'bg-[#2F5D8A] text-white font-medium'
                   : 'bg-[#F6F6F3] text-[#5C5C57] hover:text-[#1A1A1A] hover:bg-[#EAEAE7]'
               }`}
             >

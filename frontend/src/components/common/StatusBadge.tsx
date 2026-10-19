@@ -11,8 +11,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', c
 
   let dotColor = 'bg-[#7A7A75]';
   let textColor = 'text-[#5C5C57]';
-  let bgColor = 'bg-[#F4F4F2]';
-  let borderColor = 'border-[#E3E3DE]';
+  let bgColor = 'bg-[#F1F1ED]';
+  let borderColor = 'border-[#D4D4CE]';
 
   if (
     norm.includes('available') ||
@@ -20,12 +20,13 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', c
     norm === 'ok' ||
     norm === 'completed' ||
     norm === 'accepted' ||
-    norm === 'healthy'
+    norm === 'healthy' ||
+    norm === 'nominal'
   ) {
     dotColor = 'bg-[#2E7D4F]';
     textColor = 'text-[#2E7D4F]';
     bgColor = 'bg-[#EDF6F0]';
-    borderColor = 'border-[#C8E6D3]';
+    borderColor = 'border-[#BCE1C7]';
   } else if (
     norm.includes('watch') ||
     norm.includes('scheduled') ||
@@ -39,8 +40,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', c
   ) {
     dotColor = 'bg-[#A66A00]';
     textColor = 'text-[#A66A00]';
-    bgColor = 'bg-[#FEF7ED]';
-    borderColor = 'border-[#F8DCB5]';
+    bgColor = 'bg-[#FEF7EC]';
+    borderColor = 'border-[#FAD9A6]';
   } else if (
     norm.includes('unscheduled') ||
     norm.includes('repair') ||
@@ -67,7 +68,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', c
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-mono font-medium rounded border ${sizeClasses} ${bgColor} ${borderColor} ${textColor} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-sans font-medium rounded border ${sizeClasses} ${bgColor} ${borderColor} ${textColor} ${className}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
       <span className="truncate">{status}</span>

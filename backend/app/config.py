@@ -9,8 +9,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-def sanitize_db_url(url: str) -> str:
-    """Normalize database connection string for asyncpg, Supabase poolers, and cloud PostgreSQL."""
+def normalize_database_url(url: str) -> str:
+    """Normalize database connection string for asyncpg, Supabase poolers, and cloud PostgreSQL.
+
+    Converts:
+        postgres://...           -> postgresql+asyncpg://...
+        postgresql://...         -> postgresql+asyncpg://...
+        postgresql+asyncpg://... -> unchanged
+    Preserves query parameters, ports, and URL-encoded credentials.
+    Normalizes libpq-specific query parameters for asyncpg:
+        sslmode=...              -> ssl=...
+        removes unsupported channel_binding and pgbouncer parameters
+    """
     if not url:
         return url
 
@@ -32,24 +42,22 @@ def sanitize_db_url(url: str) -> str:
                 encoded_pass = urllib.parse.quote(decoded_pass, safe="")
                 url = f"{scheme}://{user_part}:{encoded_pass}@{host_part}"
 
-    for param in [
-        "?pgbouncer=true",
-        "&pgbouncer=true",
-        "?sslmode=require",
-        "&sslmode=require",
-        "?sslmode=prefer",
-        "&sslmode=prefer",
-        "?ssl=require",
-        "&ssl=require",
-    ]:
-        url = url.replace(param, "")
+    # Normalize libpq sslmode parameter to asyncpg ssl parameter
+    if "sslmode=" in url:
+        url = url.replace("sslmode=", "ssl=")
 
+    # Strip pgbouncer query parameter if present
+    import re
+
+    url = re.sub(r"[?&]pgbouncer=[^&]*", "", url)
+
+    # Strip unsupported channel_binding parameter
     if "channel_binding=" in url:
-        import re
-
         url = re.sub(r"[?&]channel_binding=[^&]*", "", url)
-        if "?" not in url and "&" in url:
-            url = url.replace("&", "?", 1)
+
+    # Fix query string separator if the first parameter was stripped
+    if "?" not in url and "&" in url:
+        url = url.replace("&", "?", 1)
 
     if url.endswith("?"):
         url = url[:-1]
@@ -57,7 +65,7 @@ def sanitize_db_url(url: str) -> str:
     return url
 
 
-normalize_database_url = sanitize_db_url
+sanitize_db_url = normalize_database_url
 
 
 class Settings(BaseSettings):

@@ -85,8 +85,8 @@ export const Heatgrid: React.FC<HeatgridProps> = ({ cells, onCellClick, loading 
     <div className="w-full flex flex-col space-y-3 bg-white border border-[#E3E3DE] rounded p-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ECECE8] pb-3">
         <div>
-          <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-[#1A1A1A]">
-            Aircraft × System Health Matrix
+          <h3 className="text-xs font-semibold text-[#1A1A1A]">
+            Aircraft × system health matrix
           </h3>
           <p className="text-[11px] text-[#5C5C57]">
             Click any cell to inspect subsystem telemetry and driver components
@@ -95,9 +95,9 @@ export const Heatgrid: React.FC<HeatgridProps> = ({ cells, onCellClick, loading 
 
         {/* Legend & Filter */}
         <div className="flex items-center space-x-3.5">
-          <div className="flex items-center space-x-2.5 text-[11px] font-mono text-[#5C5C57]">
+          <div className="flex items-center space-x-2.5 text-[11px] font-sans text-[#5C5C57]">
             <span className="flex items-center">
-              <span className="w-2 h-2 rounded-full bg-[#2E7D4F] inline-block mr-1" /> ≥75 (Nominal)
+              <span className="w-2 h-2 rounded-full bg-[#2E7D4F] inline-block mr-1" /> ≥75 (Healthy)
             </span>
             <span className="flex items-center">
               <span className="w-2 h-2 rounded-full bg-[#A66A00] inline-block mr-1" /> 50–74 (Degraded)
@@ -122,9 +122,9 @@ export const Heatgrid: React.FC<HeatgridProps> = ({ cells, onCellClick, loading 
 
       {/* Heatgrid Matrix Table */}
       <div className="overflow-x-auto max-h-[380px] overflow-y-auto pr-1">
-        <table className="w-full border-collapse text-left text-xs font-mono">
+        <table className="w-full border-collapse text-left text-xs font-sans">
           <thead className="sticky top-0 bg-[#FAFAF8] z-10">
-            <tr className="border-b border-[#E3E3DE] text-[11px] text-[#5C5C57] select-none">
+            <tr className="border-b border-[#E3E3DE] text-[11px] uppercase tracking-wider text-[#5C5C57] select-none font-sans">
               <th className="py-2 px-3 font-semibold w-24">Airframe</th>
               {systems.map((sys) => (
                 <th key={sys} className="py-2 px-2 text-center font-medium truncate max-w-[100px]" title={sys}>

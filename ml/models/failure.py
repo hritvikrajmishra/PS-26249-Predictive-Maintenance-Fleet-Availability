@@ -7,7 +7,7 @@ Applies probability calibration (sigmoid) and SHAP tree explainer for local feat
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import lightgbm as lgb
 import numpy as np
@@ -47,7 +47,8 @@ class FailureRiskBaseline:
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Returns 1D array of failure probabilities [0, 1]."""
-        return self.pipeline.predict_proba(X)[:, 1]
+        proba = np.asarray(self.pipeline.predict_proba(X))
+        return proba[:, 1]
 
     def predict(self, X: pd.DataFrame, threshold: float = 0.5) -> np.ndarray:
         return (self.predict_proba(X) >= threshold).astype(int)
@@ -70,24 +71,24 @@ class FailureRiskModel:
         self.max_depth = max_depth
         self.random_state = random_state
 
-        self.booster: Optional[lgb.LGBMClassifier] = None
-        self.calibrator: Optional[CalibratedClassifierCV] = None
-        self.explainer: Optional[shap.TreeExplainer] = None
+        self.booster: lgb.LGBMClassifier | None = None
+        self.calibrator: CalibratedClassifierCV | None = None
+        self.explainer: shap.TreeExplainer | None = None
         self.feature_names: list[str] = []
 
     def fit(
         self,
         X_train: pd.DataFrame,
         y_train: pd.Series,
-        X_val: Optional[pd.DataFrame] = None,
-        y_val: Optional[pd.Series] = None,
+        X_val: pd.DataFrame | None = None,
+        y_val: pd.Series | None = None,
     ) -> FailureRiskModel:
         """Train LightGBM on train split and calibrate probabilities on val split."""
         self.feature_names = list(X_train.columns)
 
         # Calculate positive class weight to combat imbalance
-        n_neg = int((y_train == 0).sum())
-        n_pos = int((y_train == 1).sum())
+        n_neg = (y_train == 0).sum()
+        n_pos = (y_train == 1).sum()
         scale_pos_weight = float(n_neg / max(1, n_pos))
 
         self.booster = lgb.LGBMClassifier(
@@ -121,9 +122,11 @@ class FailureRiskModel:
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """Return calibrated failure probability [0, 1]."""
         if self.calibrator is not None:
-            return self.calibrator.predict_proba(X)[:, 1]
+            proba = np.asarray(self.calibrator.predict_proba(X))
+            return proba[:, 1]
         elif self.booster is not None:
-            return self.booster.predict_proba(X)[:, 1]
+            proba = np.asarray(self.booster.predict_proba(X))
+            return proba[:, 1]
         else:
             raise RuntimeError("Model is not fitted yet.")
 
@@ -135,12 +138,28 @@ class FailureRiskModel:
         if self.explainer is None:
             return {"error": "SHAP explainer not available"}
 
-        shap_values = self.explainer.shap_values(instance_df)
-        if isinstance(shap_values, list):
-            # For binary classifier, class 1 is at index 1
-            vals = shap_values[1][0]
-        else:
-            vals = shap_values[0]
+        try:
+            explanation = self.explainer(instance_df)
+            vals = explanation.values[0]
+            base_val = explanation.base_values[0]
+            if isinstance(base_val, (list, np.ndarray)):
+                base_val = base_val[1] if len(base_val) > 1 else base_val[0]
+        except Exception:
+            shap_values = self.explainer.shap_values(instance_df, from_call=True)
+            if isinstance(shap_values, list):
+                # For binary classifier, class 1 is at index 1
+                vals = shap_values[1][0]
+            else:
+                vals = shap_values[0]
+            base_val = (
+                self.explainer.expected_value[1]
+                if isinstance(self.explainer.expected_value, (list, np.ndarray)) and len(self.explainer.expected_value) > 1
+                else (
+                    self.explainer.expected_value[0]
+                    if isinstance(self.explainer.expected_value, (list, np.ndarray))
+                    else self.explainer.expected_value
+                )
+            )
 
         impacts = []
         for feat, val in zip(self.feature_names, vals, strict=False):
@@ -149,5 +168,5 @@ class FailureRiskModel:
         impacts.sort(key=lambda x: abs(x["shap_impact"]), reverse=True)
         return {
             "top_shap_factors": impacts[:top_n],
-            "base_value": float(self.explainer.expected_value[1] if isinstance(self.explainer.expected_value, (list, np.ndarray)) else self.explainer.expected_value),
+            "base_value": float(base_val),
         }

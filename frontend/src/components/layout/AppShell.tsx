@@ -163,11 +163,11 @@ export const AppShell: React.FC = () => {
 
           {/* Role Switcher & User Signout */}
           <div className="flex items-center space-x-2 pl-2 border-l border-[#E3E3DE]">
-            <span className="hidden md:inline text-xs text-[#5C5C57]">Role:</span>
+            <span className="hidden md:inline text-xs font-sans text-[#5C5C57]">Role:</span>
             <select
               value={role || 'commander'}
               onChange={(e) => handleRoleChange(e.target.value as UserRole)}
-              className="bg-white border border-[#E3E3DE] text-[#1A1A1A] text-xs rounded px-2 py-1 font-mono focus:outline-none focus:border-[#2F5D8A] cursor-pointer"
+              className="bg-white border border-[#E3E3DE] text-[#1A1A1A] text-xs rounded px-2 py-1 font-sans focus:outline-none focus:border-[#2F5D8A] cursor-pointer"
             >
               <option value="commander">Commander</option>
               <option value="planner">Planner</option>
@@ -193,18 +193,14 @@ export const AppShell: React.FC = () => {
             mobileMenuOpen ? 'block' : 'hidden md:flex'
           }`}
         >
-          <div className="space-y-0.5">
-            <div className="px-4 pb-2 text-[11px] font-mono uppercase tracking-wider text-[#5C5C57] font-semibold">
-              Navigation
-            </div>
-
+          <div className="space-y-0.5 pt-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-4 py-2 text-xs font-mono transition-colors border-l-[3px] ${
+                  `flex items-center justify-between px-4 py-2 text-xs font-sans transition-colors border-l-[3px] ${
                     isActive
                       ? 'border-[#2F5D8A] bg-white text-[#1A1A1A] font-semibold'
                       : 'border-transparent text-[#5C5C57] hover:bg-[#E7E7E3] hover:text-[#1A1A1A]'
@@ -213,7 +209,7 @@ export const AppShell: React.FC = () => {
               >
                 <span>{item.label}</span>
                 {item.badge && (
-                  <span className="text-[11px] font-mono px-1.5 py-0.2 rounded bg-[#FDF2F0] text-[#B3402F] border border-[#F5C2BC] font-semibold">
+                  <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-[#FDF2F0] text-[#B3402F] border border-[#F5C2BC] font-semibold">
                     {item.badge}
                   </span>
                 )}
