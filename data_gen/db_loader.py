@@ -13,6 +13,12 @@ def normalize_db_url(url: str) -> str:
         url = url.replace("+asyncpg", "")
     if "+psycopg" in url:
         url = url.replace("+psycopg", "")
+    if "channel_binding=" in url:
+        import re
+
+        url = re.sub(r"[?&]channel_binding=[^&]*", "", url)
+        if "?" not in url and "&" in url:
+            url = url.replace("&", "?", 1)
     return url
 
 

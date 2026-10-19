@@ -30,8 +30,8 @@ class TestDatabaseUrlNormalization:
         assert normalize_database_url(raw) == raw
 
     def test_preserves_ssl_and_query_parameters(self) -> None:
-        raw = "postgres://user:pass@host:5432/db?ssl=require&sslmode=require&connect_timeout=10"
-        expected = "postgresql+asyncpg://user:pass@host:5432/db?ssl=require&sslmode=require&connect_timeout=10"
+        raw = "postgres://user:pass@host:5432/db?sslmode=require&channel_binding=require&connect_timeout=10"
+        expected = "postgresql+asyncpg://user:pass@host:5432/db?ssl=require&connect_timeout=10"
         assert normalize_database_url(raw) == expected
 
     def test_preserves_url_encoded_credentials(self) -> None:

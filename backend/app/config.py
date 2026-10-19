@@ -15,13 +15,26 @@ def normalize_database_url(url: str) -> str:
         postgresql://...         -> postgresql+asyncpg://...
         postgresql+asyncpg://... -> unchanged
     Preserves query parameters, ports, and URL-encoded credentials.
+    Normalizes libpq-specific query parameters for asyncpg:
+        sslmode=...              -> ssl=...
+        removes unsupported channel_binding parameter
     """
     if not url:
         return url
     if url.startswith("postgres://"):
-        return "postgresql+asyncpg://" + url[len("postgres://") :]
-    if url.startswith("postgresql://"):
-        return "postgresql+asyncpg://" + url[len("postgresql://") :]
+        url = "postgresql+asyncpg://" + url[len("postgres://") :]
+    elif url.startswith("postgresql://"):
+        url = "postgresql+asyncpg://" + url[len("postgresql://") :]
+
+    if "sslmode=" in url:
+        url = url.replace("sslmode=", "ssl=")
+    if "channel_binding=" in url:
+        import re
+
+        url = re.sub(r"[?&]channel_binding=[^&]*", "", url)
+        if "?" not in url and "&" in url:
+            url = url.replace("&", "?", 1)
+
     return url
 
 
