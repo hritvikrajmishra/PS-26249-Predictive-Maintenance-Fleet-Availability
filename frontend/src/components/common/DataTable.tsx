@@ -45,15 +45,15 @@ export function DataTable<T extends object>({
   }
 
   return (
-    <div className="w-full flex flex-col space-y-3">
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-[#0c1220]/80 shadow-md">
+    <div className="w-full flex flex-col space-y-2.5">
+      <div className="overflow-x-auto rounded border border-[#E3E3DE] bg-white">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
-            <tr className="border-b border-slate-800 bg-[#090e1a]/90 text-slate-400 font-mono uppercase text-[11px] tracking-wider select-none">
+            <tr className="border-b border-[#E3E3DE] bg-[#FAFAF8] text-[#5C5C57] font-mono uppercase text-[11px] tracking-wider select-none sticky top-0 z-10">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
-                  className={`py-3 px-4 font-semibold ${
+                  className={`py-2.5 px-3.5 font-semibold ${
                     col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
                   } ${col.className || ''}`}
                 >
@@ -62,21 +62,21 @@ export function DataTable<T extends object>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-mono text-slate-200">
+          <tbody className="divide-y divide-[#ECECE8] font-mono text-[#1A1A1A]">
             {data.map((row, rowIdx) => (
               <tr
                 key={rowIdx}
                 onClick={() => onRowClick && onRowClick(row)}
-                className={`transition-colors duration-150 ${
+                className={`transition-colors duration-100 ${
                   onRowClick
-                    ? 'cursor-pointer hover:bg-blue-600/10 hover:text-white'
-                    : 'hover:bg-slate-800/30'
+                    ? 'cursor-pointer hover:bg-[#F6F6F3]'
+                    : 'hover:bg-[#FAFAF8]'
                 }`}
               >
                 {columns.map((col, colIdx) => (
                   <td
                     key={colIdx}
-                    className={`py-3 px-4 ${
+                    className={`py-2.5 px-3.5 tabular-nums ${
                       col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
                     } ${col.className || ''}`}
                   >
@@ -94,30 +94,30 @@ export function DataTable<T extends object>({
       </div>
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 text-xs font-mono text-slate-400">
+        <div className="flex items-center justify-between px-1 text-xs font-mono text-[#5C5C57]">
           <div>
-            Showing page <span className="font-semibold text-slate-200">{pagination.currentPage}</span> of{' '}
-            <span className="font-semibold text-slate-200">{pagination.totalPages}</span> ({pagination.totalItems} items)
+            Page <span className="font-semibold text-[#1A1A1A]">{pagination.currentPage}</span> of{' '}
+            <span className="font-semibold text-[#1A1A1A]">{pagination.totalPages}</span> ({pagination.totalItems} records)
           </div>
           <div className="flex items-center space-x-1">
             <button
               onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
               disabled={pagination.currentPage <= 1}
-              className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition"
+              className="p-1 rounded border border-[#E3E3DE] bg-white hover:bg-[#F6F6F3] text-[#5C5C57] disabled:opacity-40 disabled:pointer-events-none transition"
               title="Previous Page"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <span className="px-2 py-1 font-semibold text-slate-200 bg-slate-800/80 rounded border border-slate-700">
+            <span className="px-2 py-0.5 font-semibold text-[#1A1A1A] bg-[#FAFAF8] rounded border border-[#E3E3DE]">
               {pagination.currentPage}
             </span>
             <button
               onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
               disabled={pagination.currentPage >= pagination.totalPages}
-              className="p-1.5 rounded border border-slate-700 hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition"
+              className="p-1 rounded border border-[#E3E3DE] bg-white hover:bg-[#F6F6F3] text-[#5C5C57] disabled:opacity-40 disabled:pointer-events-none transition"
               title="Next Page"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

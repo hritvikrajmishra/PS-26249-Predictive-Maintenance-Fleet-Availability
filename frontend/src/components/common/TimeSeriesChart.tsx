@@ -33,10 +33,12 @@ interface TimeSeriesChartProps {
   loading?: boolean;
 }
 
+const MUTED_PALETTE = ['#2F5D8A', '#4F759B', '#608070', '#8C7A6B', '#8F6580', '#A66A00'];
+
 export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
   title,
   subtitle,
-  height = 300,
+  height = 280,
   series,
   anomalyWindows = [],
   forecastStartDate,
@@ -52,7 +54,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
     if (!chartRef.current) return;
 
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current, 'dark', {
+      chartInstance.current = echarts.init(chartRef.current, undefined, {
         renderer: 'canvas',
       });
     }
@@ -61,17 +63,17 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
 
     if (loading) {
       chart.showLoading({
-        text: 'Streaming Telemetry...',
-        color: '#3b82f6',
-        textColor: '#94a3b8',
-        maskColor: 'rgba(11, 17, 32, 0.8)',
+        text: 'Loading series data...',
+        color: '#2F5D8A',
+        textColor: '#5C5C57',
+        maskColor: 'rgba(255, 255, 255, 0.85)',
       });
       return;
     } else {
       chart.hideLoading();
     }
 
-    // Construct markArea pieces for anomalies
+    // Construct markArea pieces for forecast & anomalies
     const markAreaPieces: Array<[
       { coord: [string, number | undefined]; itemStyle?: { color?: string } },
       { coord: [string, number | undefined] }
@@ -83,7 +85,7 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         {
           coord: [forecastStartDate, undefined],
           itemStyle: {
-            color: 'rgba(59, 130, 246, 0.08)',
+            color: 'rgba(47, 93, 138, 0.05)',
           },
         },
         {
@@ -92,13 +94,13 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
       ]);
     }
 
-    // Add anomaly window shadings
+    // Add anomaly window shadings in desaturated tint
     anomalyWindows.forEach((win) => {
       markAreaPieces.push([
         {
           coord: [win.startDate, undefined],
           itemStyle: {
-            color: win.color || 'rgba(244, 63, 94, 0.15)',
+            color: win.color || 'rgba(179, 64, 47, 0.10)',
           },
         },
         {
@@ -107,53 +109,57 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
       ]);
     });
 
-    const echartsSeries = series.map((s, idx) => ({
-      name: s.name,
-      type: s.type || 'line',
-      smooth: true,
-      showSymbol: false,
-      lineStyle: {
-        width: 2,
-        color: s.color || ['#38bdf8', '#10b981', '#f59e0b', '#ec4899'][idx % 4],
-        type: s.dashed ? 'dashed' : 'solid',
-      },
-      itemStyle: {
-        color: s.color || ['#38bdf8', '#10b981', '#f59e0b', '#ec4899'][idx % 4],
-      },
-      areaStyle: s.area
-        ? {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: (s.color || '#38bdf8') + '33' },
-              { offset: 1, color: (s.color || '#38bdf8') + '00' },
-            ]),
-          }
-        : undefined,
-      data: s.data as unknown as echarts.SeriesOption['data'],
-      markArea:
-        idx === 0 && markAreaPieces.length > 0
+    const echartsSeries = series.map((s, idx) => {
+      const seriesColor = s.color || MUTED_PALETTE[idx % MUTED_PALETTE.length];
+      return {
+        name: s.name,
+        type: s.type || 'line',
+        smooth: false,
+        showSymbol: false,
+        lineStyle: {
+          width: 1.75,
+          color: seriesColor,
+          type: s.dashed ? 'dashed' : 'solid',
+        },
+        itemStyle: {
+          color: seriesColor,
+        },
+        areaStyle: s.area
           ? {
-              silent: true,
-              data: markAreaPieces as unknown as echarts.MarkAreaComponentOption['data'],
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: seriesColor + '25' },
+                { offset: 1, color: seriesColor + '04' },
+              ]),
             }
           : undefined,
-    })) as unknown as echarts.SeriesOption[];
+        data: s.data as unknown as echarts.SeriesOption['data'],
+        markArea:
+          idx === 0 && markAreaPieces.length > 0
+            ? {
+                silent: true,
+                data: markAreaPieces as unknown as echarts.MarkAreaComponentOption['data'],
+              }
+            : undefined,
+      };
+    }) as unknown as echarts.SeriesOption[];
 
     const option: echarts.EChartsOption = {
       backgroundColor: 'transparent',
+      animation: false,
       title: title
         ? {
             text: title,
             subtext: subtitle,
             textStyle: {
-              color: '#f8fafc',
+              color: '#1A1A1A',
               fontSize: 13,
               fontWeight: 600,
-              fontFamily: 'monospace',
+              fontFamily: '"IBM Plex Sans", sans-serif',
             },
             subtextStyle: {
-              color: '#94a3b8',
+              color: '#5C5C57',
               fontSize: 11,
-              fontFamily: 'sans-serif',
+              fontFamily: '"IBM Plex Sans", sans-serif',
             },
             left: 0,
             top: 0,
@@ -161,40 +167,44 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         : undefined,
       tooltip: {
         trigger: 'axis',
-        backgroundColor: '#090e1a',
-        borderColor: '#1e293b',
+        backgroundColor: '#FFFFFF',
+        borderColor: '#E3E3DE',
         borderWidth: 1,
         textStyle: {
-          color: '#e2e8f0',
+          color: '#1A1A1A',
           fontSize: 11,
-          fontFamily: 'monospace',
+          fontFamily: '"IBM Plex Mono", monospace',
         },
-        padding: [8, 12],
+        extraCssText: 'box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); border-radius: 4px;',
+        padding: [6, 10],
       },
       legend: {
         top: title ? 2 : 0,
         right: 0,
         textStyle: {
-          color: '#94a3b8',
+          color: '#5C5C57',
           fontSize: 11,
-          fontFamily: 'monospace',
+          fontFamily: '"IBM Plex Sans", sans-serif',
         },
-        icon: 'circle',
+        icon: 'plain',
+        itemWidth: 16,
+        itemHeight: 2,
       },
       grid: {
-        top: title ? 48 : 24,
-        left: '2%',
-        right: '3%',
+        top: title ? (subtitle ? 50 : 36) : 24,
+        left: '1%',
+        right: '2%',
         bottom: '8%',
         containLabel: true,
       },
       xAxis: {
         type: 'time',
-        axisLine: { lineStyle: { color: '#1e293b' } },
+        axisLine: { lineStyle: { color: '#E3E3DE' } },
+        axisTick: { lineStyle: { color: '#E3E3DE' } },
         axisLabel: {
-          color: '#64748b',
+          color: '#5C5C57',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: '"IBM Plex Mono", monospace',
         },
         splitLine: { show: false },
       },
@@ -204,20 +214,21 @@ export const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         min: yAxisMin,
         max: yAxisMax,
         nameTextStyle: {
-          color: '#64748b',
+          color: '#5C5C57',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: '"IBM Plex Sans", sans-serif',
         },
         axisLine: { show: false },
+        axisTick: { show: false },
         axisLabel: {
-          color: '#64748b',
+          color: '#5C5C57',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: '"IBM Plex Mono", monospace',
         },
         splitLine: {
           lineStyle: {
-            color: '#1e293b',
-            type: 'dashed',
+            color: '#ECECE8',
+            type: 'solid',
           },
         },
       },

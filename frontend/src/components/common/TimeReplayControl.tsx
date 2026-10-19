@@ -58,11 +58,11 @@ export const TimeReplayControl: React.FC = () => {
   }, [isPlaying, asOfDate, setAsOfDate]);
 
   return (
-    <div className="flex items-center space-x-1 sm:space-x-2 bg-slate-900/90 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner font-mono text-xs">
-      {/* Replay Label / Icon */}
-      <div className="hidden lg:flex items-center space-x-1 text-slate-400 pr-1 border-r border-slate-800">
-        <Clock className="w-3.5 h-3.5 text-cyan-400" />
-        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-300">Replay</span>
+    <div className="flex items-center space-x-1 sm:space-x-1.5 bg-white border border-[#E3E3DE] rounded px-2 py-1 font-mono text-xs text-[#1A1A1A]">
+      {/* Replay Label */}
+      <div className="hidden lg:flex items-center space-x-1 text-[#5C5C57] pr-1.5 border-r border-[#ECECE8]">
+        <Clock className="w-3.5 h-3.5 text-[#2F5D8A]" />
+        <span className="text-[11px] uppercase font-semibold tracking-wider text-[#5C5C57]">Replay</span>
       </div>
 
       {/* Quick Jump Bookmarks */}
@@ -77,10 +77,10 @@ export const TimeReplayControl: React.FC = () => {
                 setAsOfDate(bm.date);
               }}
               title={`${bm.label} (${bm.date}): ${bm.desc}`}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition ${
+              className={`px-1.5 py-0.5 rounded text-[11px] font-mono transition ${
                 isActive
-                  ? 'bg-blue-600 text-white font-bold shadow-sm'
-                  : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                  ? 'bg-[#2F5D8A] text-white font-semibold'
+                  : 'bg-[#F6F6F3] text-[#5C5C57] hover:text-[#1A1A1A] hover:bg-[#EAEAE7]'
               }`}
             >
               {bm.label}
@@ -96,15 +96,15 @@ export const TimeReplayControl: React.FC = () => {
             setIsPlaying(false);
             adjustDate(-1);
           }}
-          className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition"
+          className="p-1 rounded hover:bg-[#F6F6F3] text-[#5C5C57] hover:text-[#1A1A1A] transition"
           title="Previous Day (-1d)"
           aria-label="Previous Day"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
         </button>
 
-        <div className="flex items-center space-x-1 px-1 bg-slate-950/60 border border-slate-800 rounded">
-          <Calendar className="w-3 h-3 text-blue-400 shrink-0" />
+        <div className="flex items-center space-x-1 px-1 bg-[#FAFAF8] border border-[#E3E3DE] rounded">
+          <Calendar className="w-3 h-3 text-[#2F5D8A] shrink-0" />
           <input
             type="date"
             value={currentDate}
@@ -112,7 +112,7 @@ export const TimeReplayControl: React.FC = () => {
               setIsPlaying(false);
               setAsOfDate(e.target.value || '2025-11-25');
             }}
-            className="bg-transparent text-slate-200 text-xs font-mono focus:outline-none w-[105px] cursor-pointer"
+            className="bg-transparent text-[#1A1A1A] text-xs font-mono focus:outline-none w-[105px] cursor-pointer border-none p-0"
             title="Time-replay cutoff date"
           />
         </div>
@@ -122,7 +122,7 @@ export const TimeReplayControl: React.FC = () => {
             setIsPlaying(false);
             adjustDate(1);
           }}
-          className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition"
+          className="p-1 rounded hover:bg-[#F6F6F3] text-[#5C5C57] hover:text-[#1A1A1A] transition"
           title="Next Day (+1d)"
           aria-label="Next Day"
         >
@@ -135,8 +135,8 @@ export const TimeReplayControl: React.FC = () => {
         onClick={() => setIsPlaying(!isPlaying)}
         className={`p-1 rounded transition flex items-center gap-1 text-[11px] ${
           isPlaying
-            ? 'bg-amber-600/80 hover:bg-amber-500 text-white'
-            : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+            ? 'bg-[#A66A00] text-white'
+            : 'bg-[#F6F6F3] hover:bg-[#EAEAE7] text-[#5C5C57] hover:text-[#1A1A1A]'
         }`}
         title={isPlaying ? 'Pause replay tour' : 'Play replay tour (cycles key demo dates)'}
       >
@@ -150,7 +150,7 @@ export const TimeReplayControl: React.FC = () => {
             setIsPlaying(false);
             setAsOfDate('2025-11-25');
           }}
-          className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-300 transition"
+          className="p-1 rounded hover:bg-[#F6F6F3] text-[#5C5C57] hover:text-[#2F5D8A] transition"
           title="Reset to Hero Baseline Date (2025-11-25)"
         >
           <RotateCcw className="w-3.5 h-3.5" />

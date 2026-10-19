@@ -279,18 +279,18 @@ export const SimulatorPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto text-[#1A1A1A]">
       {/* 1. Header & Navigation */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E3E3DE] pb-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-cyan-600/20 border border-cyan-500/40 rounded-xl text-cyan-400">
-            <Sliders className="w-6 h-6" />
+          <div className="p-2 bg-[#F6F6F3] border border-[#E3E3DE] rounded text-[#2F5D8A]">
+            <Sliders className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold font-mono text-white tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold font-mono text-[#1A1A1A] tracking-tight">
               Scenario Simulator (What-If Engine)
             </h1>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
+            <p className="text-xs text-[#5C5C57] font-mono mt-0.5">
               Seeded dual-leg Monte Carlo discrete-event availability simulation (§7, §9 & §10)
             </p>
           </div>
@@ -302,56 +302,56 @@ export const SimulatorPage: React.FC = () => {
           <button
             onClick={handleRunDemoTriad}
             disabled={!canSimulate || runningTriad || runScenarioMutation.isPending}
-            className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white rounded-lg font-mono text-xs font-semibold flex items-center space-x-1.5 shadow-lg shadow-cyan-900/30 transition"
+            className="px-3 py-1.5 bg-[#2F5D8A] hover:bg-[#264A6E] disabled:opacity-50 text-white rounded font-mono text-xs font-semibold flex items-center space-x-1.5 transition shadow-sm"
             title="Run standard 3-way comparison triad: Baseline vs Proactive vs Spare Outage"
           >
-            <Layers className="w-3.5 h-3.5 text-cyan-200" />
+            <Layers className="w-3.5 h-3.5 text-white/90" />
             <span>
               {runningTriad ? 'Simulating Triad (300 runs)...' : 'Run Standard Demo Triad (§10 Step 10)'}
             </span>
           </button>
 
           {/* Tab Controls */}
-          <div className="flex items-center space-x-1 bg-slate-900 border border-slate-700/80 rounded-lg p-1 text-xs font-mono">
-          <button
-            onClick={() => setActiveTab('simulator')}
-            className={`px-3 py-1.5 rounded font-semibold transition ${
-              activeTab === 'simulator'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Run Simulator
-          </button>
-          <button
-            onClick={() => setActiveTab('compare')}
-            className={`px-3 py-1.5 rounded font-semibold transition flex items-center space-x-1.5 ${
-              activeTab === 'compare'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>Compare ({pinnedScenarios.length}/3)</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`px-3 py-1.5 rounded font-semibold transition flex items-center space-x-1.5 ${
-              activeTab === 'history'
-                ? 'bg-blue-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <History className="w-3.5 h-3.5" />
-            <span>Audit History</span>
-          </button>
+          <div className="flex items-center space-x-1 bg-[#EFEFEB] border border-[#E3E3DE] rounded p-1 text-xs font-mono">
+            <button
+              onClick={() => setActiveTab('simulator')}
+              className={`px-3 py-1.5 rounded font-semibold transition ${
+                activeTab === 'simulator'
+                  ? 'bg-white text-[#1A1A1A] shadow-sm border border-[#E3E3DE]'
+                  : 'text-[#5C5C57] hover:text-[#1A1A1A]'
+              }`}
+            >
+              Run Simulator
+            </button>
+            <button
+              onClick={() => setActiveTab('compare')}
+              className={`px-3 py-1.5 rounded font-semibold transition flex items-center space-x-1.5 ${
+                activeTab === 'compare'
+                  ? 'bg-white text-[#1A1A1A] shadow-sm border border-[#E3E3DE]'
+                  : 'text-[#5C5C57] hover:text-[#1A1A1A]'
+              }`}
+            >
+              <span>Compare ({pinnedScenarios.length}/3)</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-3 py-1.5 rounded font-semibold transition flex items-center space-x-1.5 ${
+                activeTab === 'history'
+                  ? 'bg-white text-[#1A1A1A] shadow-sm border border-[#E3E3DE]'
+                  : 'text-[#5C5C57] hover:text-[#1A1A1A]'
+              }`}
+            >
+              <History className="w-3.5 h-3.5" />
+              <span>Audit History</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
       {/* Validation or Error Message */}
       {validationError && (
-        <div className="p-3.5 bg-rose-950/70 border border-rose-500/50 rounded-xl text-rose-300 text-xs font-mono flex items-center space-x-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="p-3 bg-[#FDF2F2] border border-[#F5C2C0] rounded text-[#B3402F] text-xs font-mono flex items-center space-x-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-[#B3402F]" />
           <span>{validationError}</span>
         </div>
       )}
@@ -360,19 +360,19 @@ export const SimulatorPage: React.FC = () => {
       {activeTab === 'simulator' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Column: Configuration Form (5 cols) */}
-          <div className="lg:col-span-5 bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <span className="font-bold text-white uppercase flex items-center gap-1.5">
-                <Wrench className="w-4 h-4 text-cyan-400" />
+          <div className="lg:col-span-5 bg-white border border-[#E3E3DE] rounded p-5 shadow-sm space-y-4 font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-[#E3E3DE] pb-3">
+              <span className="font-bold text-[#1A1A1A] uppercase flex items-center gap-1.5">
+                <Wrench className="w-4 h-4 text-[#2F5D8A]" />
                 Scenario Parameters
               </span>
-              <span className="text-[10px] text-slate-500">4 Policy Types</span>
+              <span className="text-[10px] text-[#5C5C57]">4 Policy Types</span>
             </div>
 
             <form onSubmit={handleExecuteSimulation} className="space-y-4">
               {/* Scenario Type Selection */}
               <div>
-                <label className="block text-slate-400 mb-1 font-semibold">Select Policy Type</label>
+                <label className="block text-[#5C5C57] mb-1 font-semibold">Select Policy Type</label>
                 <div className="grid grid-cols-1 gap-1.5">
                   {[
                     {
@@ -398,10 +398,10 @@ export const SimulatorPage: React.FC = () => {
                   ].map((item) => (
                     <label
                       key={item.id}
-                      className={`flex items-start space-x-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
+                      className={`flex items-start space-x-2.5 p-2.5 rounded border cursor-pointer transition ${
                         scenarioType === item.id
-                          ? 'bg-blue-950/60 border-blue-500/80 text-white'
-                          : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-700'
+                          ? 'bg-[#F0F5FA] border-[#2F5D8A] text-[#1A1A1A]'
+                          : 'bg-white border-[#E3E3DE] text-[#5C5C57] hover:border-[#D5D5CF]'
                       }`}
                     >
                       <input
@@ -410,11 +410,11 @@ export const SimulatorPage: React.FC = () => {
                         value={item.id}
                         checked={scenarioType === item.id}
                         onChange={() => setScenarioType(item.id as ScenarioType)}
-                        className="mt-0.5 text-blue-600 focus:ring-0"
+                        className="mt-0.5 accent-[#2F5D8A]"
                       />
                       <div>
-                        <div className="font-bold text-slate-200">{item.label}</div>
-                        <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                        <div className="font-bold text-[#1A1A1A]">{item.label}</div>
+                        <div className="text-[10px] text-[#5C5C57] leading-tight mt-0.5">
                           {item.desc}
                         </div>
                       </div>
@@ -424,15 +424,15 @@ export const SimulatorPage: React.FC = () => {
               </div>
 
               {/* Dynamic Parameter Fields */}
-              <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-lg space-y-3">
+              <div className="p-3 bg-[#F6F6F3] border border-[#E3E3DE] rounded space-y-3">
                 {scenarioType === 'early_vs_run_to_failure' && (
                   <>
                     <div>
-                      <label className="block text-slate-400 mb-1">Target Airframe</label>
+                      <label className="block text-[#5C5C57] mb-1">Target Airframe</label>
                       <select
                         value={earlyAircraft}
                         onChange={(e) => setEarlyAircraft(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                        className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                       >
                         {aircraftList.map((ac) => (
                           <option key={ac.aircraft_id} value={ac.aircraft_id}>
@@ -443,25 +443,25 @@ export const SimulatorPage: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-slate-400 mb-1">Proactive Day</label>
+                        <label className="block text-[#5C5C57] mb-1">Proactive Day</label>
                         <input
                           type="number"
                           min={1}
                           max={30}
                           value={earlyReplaceDay}
                           onChange={(e) => setEarlyReplaceDay(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                          className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-400 mb-1">Duration (Days)</label>
+                        <label className="block text-[#5C5C57] mb-1">Duration (Days)</label>
                         <input
                           type="number"
                           min={1}
                           max={10}
                           value={earlyDurationDays}
                           onChange={(e) => setEarlyDurationDays(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                          className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                         />
                       </div>
                     </div>
@@ -471,11 +471,11 @@ export const SimulatorPage: React.FC = () => {
                 {scenarioType === 'schedule_maintenance' && (
                   <>
                     <div>
-                      <label className="block text-slate-400 mb-1">Target Airframe</label>
+                      <label className="block text-[#5C5C57] mb-1">Target Airframe</label>
                       <select
                         value={schedAircraft}
                         onChange={(e) => setSchedAircraft(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                        className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                       >
                         {aircraftList.map((ac) => (
                           <option key={ac.aircraft_id} value={ac.aircraft_id}>
@@ -486,25 +486,25 @@ export const SimulatorPage: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-slate-400 mb-1">Planned Start (Day)</label>
+                        <label className="block text-[#5C5C57] mb-1">Planned Start (Day)</label>
                         <input
                           type="number"
                           min={1}
                           max={60}
                           value={schedStartDay}
                           onChange={(e) => setSchedStartDay(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                          className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-400 mb-1">Service Duration (Days)</label>
+                        <label className="block text-[#5C5C57] mb-1">Service Duration (Days)</label>
                         <input
                           type="number"
                           min={1}
                           max={14}
                           value={schedDurationDays}
                           onChange={(e) => setSchedDurationDays(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                          className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                         />
                       </div>
                     </div>
@@ -514,11 +514,11 @@ export const SimulatorPage: React.FC = () => {
                 {scenarioType === 'spare_unavailable' && (
                   <>
                     <div>
-                      <label className="block text-slate-400 mb-1">Critical Part Number</label>
+                      <label className="block text-[#5C5C57] mb-1">Critical Part Number</label>
                       <select
                         value={sparePartNumber}
                         onChange={(e) => setSparePartNumber(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                        className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                       >
                         {partsList.map((p) => (
                           <option key={p.part_number} value={p.part_number}>
@@ -529,25 +529,25 @@ export const SimulatorPage: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-slate-400 mb-1">Simulated Stock</label>
+                        <label className="block text-[#5C5C57] mb-1">Simulated Stock</label>
                         <input
                           type="number"
                           min={0}
                           max={20}
                           value={spareStockOverride}
                           onChange={(e) => setSpareStockOverride(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                          className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-400 mb-1">Lead Time Delay (Days)</label>
+                        <label className="block text-[#5C5C57] mb-1">Lead Time Delay (Days)</label>
                         <input
                           type="number"
                           min={5}
                           max={90}
                           value={spareLeadTimeDays}
                           onChange={(e) => setSpareLeadTimeDays(Number(e.target.value))}
-                          className="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white focus:outline-none"
+                          className="w-full bg-white border border-[#D5D5CF] rounded p-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                         />
                       </div>
                     </div>
@@ -556,7 +556,7 @@ export const SimulatorPage: React.FC = () => {
 
                 {scenarioType === 'extra_capacity' && (
                   <div>
-                    <label className="block text-slate-400 mb-1">Additional Workshop Bays</label>
+                    <label className="block text-[#5C5C57] mb-1">Additional Workshop Bays</label>
                     <div className="flex items-center space-x-3">
                       <input
                         type="range"
@@ -564,9 +564,9 @@ export const SimulatorPage: React.FC = () => {
                         max={6}
                         value={bayIncrease}
                         onChange={(e) => setBayIncrease(Number(e.target.value))}
-                        className="w-full accent-blue-500 cursor-pointer"
+                        className="w-full accent-[#2F5D8A] cursor-pointer"
                       />
-                      <span className="font-bold text-white text-sm w-12 text-right">
+                      <span className="font-bold text-[#1A1A1A] text-sm w-12 text-right tabular-nums">
                         +{bayIncrease} Bays
                       </span>
                     </div>
@@ -577,7 +577,7 @@ export const SimulatorPage: React.FC = () => {
               {/* Simulation Global Engine Parameters */}
               <div className="grid grid-cols-3 gap-2.5 pt-1">
                 <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">
+                  <label className="block text-[#5C5C57] text-[11px] mb-1">
                     Horizon (7–90d)
                   </label>
                   <input
@@ -586,12 +586,12 @@ export const SimulatorPage: React.FC = () => {
                     max={90}
                     value={horizonDays}
                     onChange={(e) => setHorizonDays(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white focus:outline-none"
+                    className="w-full bg-white border border-[#D5D5CF] rounded p-1.5 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">
+                  <label className="block text-[#5C5C57] text-[11px] mb-1">
                     Runs (50–500)
                   </label>
                   <input
@@ -601,19 +601,19 @@ export const SimulatorPage: React.FC = () => {
                     step={25}
                     value={simulationRuns}
                     onChange={(e) => setSimulationRuns(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white focus:outline-none"
+                    className="w-full bg-white border border-[#D5D5CF] rounded p-1.5 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 text-[11px] mb-1">
+                  <label className="block text-[#5C5C57] text-[11px] mb-1">
                     RNG Seed
                   </label>
                   <input
                     type="number"
                     value={randomSeed}
                     onChange={(e) => setRandomSeed(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white focus:outline-none"
+                    className="w-full bg-white border border-[#D5D5CF] rounded p-1.5 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#2F5D8A]"
                   />
                 </div>
               </div>
@@ -622,7 +622,7 @@ export const SimulatorPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={!canSimulate || runScenarioMutation.isPending}
-                className="w-full py-2.5 bg-gradient-to-r from-blue-600 via-cyan-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 disabled:opacity-50 text-white rounded-lg font-bold flex items-center justify-center space-x-2 transition shadow-lg shadow-cyan-900/30"
+                className="w-full py-2.5 bg-[#2F5D8A] hover:bg-[#264A6E] disabled:opacity-50 text-white rounded font-bold flex items-center justify-center space-x-2 transition shadow-sm text-xs"
               >
                 {runScenarioMutation.isPending ? (
                   <>
@@ -642,25 +642,25 @@ export const SimulatorPage: React.FC = () => {
           {/* Right Column: Simulation Output Dashboard (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
             {runScenarioMutation.isPending ? (
-              <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-8 text-center font-mono space-y-4">
-                <RotateCcw className="w-8 h-8 animate-spin text-cyan-400 mx-auto" />
+              <div className="bg-white border border-[#E3E3DE] rounded p-8 text-center font-mono space-y-4 shadow-sm">
+                <RotateCcw className="w-7 h-7 animate-spin text-[#2F5D8A] mx-auto" />
                 <div>
-                  <h3 className="text-white font-bold text-sm">
+                  <h3 className="text-[#1A1A1A] font-bold text-sm">
                     Simulating {simulationRuns} Parallel Monte Carlo Trajectories
                   </h3>
-                  <p className="text-slate-400 text-xs mt-1">
+                  <p className="text-[#5C5C57] text-xs mt-1">
                     Executing dual-leg discrete event simulation over a {horizonDays}-day horizon...
                   </p>
                 </div>
-                <div className="max-w-xs mx-auto bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
-                  <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-2/3 animate-pulse" />
+                <div className="max-w-xs mx-auto bg-[#EAEAE7] h-2 rounded overflow-hidden">
+                  <div className="bg-[#2F5D8A] h-full w-2/3" />
                 </div>
               </div>
             ) : !activeResult ? (
-              <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-12 text-center font-mono space-y-3">
-                <Sliders className="w-10 h-10 text-slate-600 mx-auto" />
-                <h3 className="text-slate-300 font-bold text-sm">Ready for Simulation</h3>
-                <p className="text-slate-500 text-xs max-w-md mx-auto">
+              <div className="bg-white border border-[#E3E3DE] rounded p-12 text-center font-mono space-y-3 shadow-sm">
+                <Sliders className="w-8 h-8 text-[#8C8C85] mx-auto" />
+                <h3 className="text-[#1A1A1A] font-bold text-sm">Ready for Simulation</h3>
+                <p className="text-[#5C5C57] text-xs max-w-md mx-auto">
                   Configure the scenario policy on the left and click &quot;Run What-If Simulation&quot; to compute
                   availability trajectory curves, confidence bands, and aircraft-days delta.
                 </p>
@@ -684,9 +684,9 @@ export const SimulatorPage: React.FC = () => {
                     }}
                     icon={
                       activeResult.delta.availability_pct_points >= 0 ? (
-                        <TrendingUp className="w-5 h-5" />
+                        <TrendingUp className="w-4 h-4" />
                       ) : (
-                        <TrendingDown className="w-5 h-5" />
+                        <TrendingDown className="w-4 h-4" />
                       )
                     }
                     accent={activeResult.delta.availability_pct_points >= 0 ? 'emerald' : 'rose'}
@@ -705,7 +705,7 @@ export const SimulatorPage: React.FC = () => {
                           : 'Added Downtime',
                       isPositive: activeResult.delta.aircraft_days_lost <= 0,
                     }}
-                    icon={<Clock className="w-5 h-5" />}
+                    icon={<Clock className="w-4 h-4" />}
                     accent={activeResult.delta.aircraft_days_lost <= 0 ? 'emerald' : 'amber'}
                   />
 
@@ -722,29 +722,29 @@ export const SimulatorPage: React.FC = () => {
                           : 'Supply Constrained',
                       isPositive: activeResult.scenario.stockout_probability <= 0.05,
                     }}
-                    icon={<Package className="w-5 h-5" />}
+                    icon={<Package className="w-4 h-4" />}
                     accent={activeResult.scenario.stockout_probability <= 0.05 ? 'cyan' : 'rose'}
                   />
                 </div>
 
                 {/* 2. Interactive Availability Trajectory Chart (Baseline vs Scenario with Bands) */}
-                <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div className="bg-white border border-[#E3E3DE] rounded p-5 shadow-sm space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E3E3DE] pb-3">
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-cyan-400" />
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A1A1A] flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-[#2F5D8A]" />
                         Fleet Availability Projection (Baseline vs. Scenario)
                       </h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
+                      <p className="text-[11px] text-[#5C5C57] mt-0.5">
                         P50 trajectory lines with P10–P90 Monte Carlo confidence envelope bands
                       </p>
                     </div>
 
                     <button
                       onClick={handlePinScenario}
-                      className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center space-x-1.5 transition shadow"
+                      className="px-3 py-1.5 rounded bg-white border border-[#D5D5CF] hover:bg-[#F6F6F3] text-[#1A1A1A] text-xs font-semibold flex items-center space-x-1.5 transition"
                     >
-                      <BookmarkPlus className="w-3.5 h-3.5" />
+                      <BookmarkPlus className="w-3.5 h-3.5 text-[#5C5C57]" />
                       <span>Pin for Comparison</span>
                     </button>
                   </div>
@@ -753,23 +753,23 @@ export const SimulatorPage: React.FC = () => {
                 </div>
 
                 {/* 3. Downtime Cause Delta Breakdown */}
-                <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3 text-xs">
-                  <div className="flex items-center justify-between text-slate-300">
+                <div className="bg-white border border-[#E3E3DE] rounded p-4 shadow-sm space-y-3 text-xs">
+                  <div className="flex items-center justify-between text-[#1A1A1A]">
                     <span className="font-semibold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-blue-400" />
+                      <Layers className="w-4 h-4 text-[#2F5D8A]" />
                       Downtime Impact Breakdown by Cause (Days Delta)
                     </span>
-                    <span className="text-slate-500 text-[10px]">Net Fleet Days</span>
+                    <span className="text-[#5C5C57] text-[10px]">Net Fleet Days</span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Scheduled Servicing</div>
+                    <div className="p-2.5 bg-[#F6F6F3] rounded border border-[#E3E3DE]">
+                      <div className="text-[10px] text-[#5C5C57]">Scheduled Servicing</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-sm font-bold font-mono mt-0.5 tabular-nums ${
                           (activeResult.by_cause.scheduled || 0) > 0
-                            ? 'text-amber-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#A66A00]'
+                            : 'text-[#2E7D4F]'
                         }`}
                       >
                         {(activeResult.by_cause.scheduled || 0) >= 0 ? '+' : ''}
@@ -777,13 +777,13 @@ export const SimulatorPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Unscheduled Repairs</div>
+                    <div className="p-2.5 bg-[#F6F6F3] rounded border border-[#E3E3DE]">
+                      <div className="text-[10px] text-[#5C5C57]">Unscheduled Repairs</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-sm font-bold font-mono mt-0.5 tabular-nums ${
                           (activeResult.by_cause.unscheduled || 0) > 0
-                            ? 'text-rose-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#B3402F]'
+                            : 'text-[#2E7D4F]'
                         }`}
                       >
                         {(activeResult.by_cause.unscheduled || 0) >= 0 ? '+' : ''}
@@ -791,13 +791,13 @@ export const SimulatorPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Supply Wait Grounding</div>
+                    <div className="p-2.5 bg-[#F6F6F3] rounded border border-[#E3E3DE]">
+                      <div className="text-[10px] text-[#5C5C57]">Supply Wait Grounding</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-sm font-bold font-mono mt-0.5 tabular-nums ${
                           (activeResult.by_cause.supply_wait || 0) > 0
-                            ? 'text-rose-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#B3402F]'
+                            : 'text-[#2E7D4F]'
                         }`}
                       >
                         {(activeResult.by_cause.supply_wait || 0) >= 0 ? '+' : ''}
@@ -805,13 +805,13 @@ export const SimulatorPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800">
-                      <div className="text-[10px] text-slate-400">Workshop Bay Queue</div>
+                    <div className="p-2.5 bg-[#F6F6F3] rounded border border-[#E3E3DE]">
+                      <div className="text-[10px] text-[#5C5C57]">Workshop Bay Queue</div>
                       <div
-                        className={`text-sm font-bold font-mono mt-0.5 ${
+                        className={`text-sm font-bold font-mono mt-0.5 tabular-nums ${
                           (activeResult.by_cause.agency_wait || 0) > 0
-                            ? 'text-amber-400'
-                            : 'text-emerald-400'
+                            ? 'text-[#A66A00]'
+                            : 'text-[#2E7D4F]'
                         }`}
                       >
                         {(activeResult.by_cause.agency_wait || 0) >= 0 ? '+' : ''}
@@ -829,19 +829,19 @@ export const SimulatorPage: React.FC = () => {
       {/* 3. TAB: SIDE-BY-SIDE COMPARISON (UP TO 3 SCENARIOS) */}
       {activeTab === 'compare' && (
         <div className="space-y-4 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center justify-between border-b border-[#E3E3DE] pb-3">
             <div>
-              <h3 className="font-bold text-white uppercase text-sm">
+              <h3 className="font-bold text-[#1A1A1A] uppercase text-sm">
                 Side-by-Side Policy Comparison ({pinnedScenarios.length}/3 Pinned)
               </h3>
-              <p className="text-slate-400 text-[11px] mt-0.5">
+              <p className="text-[#5C5C57] text-[11px] mt-0.5">
                 Evaluate trade-offs between proactive replacement, run-to-failure, and workshop capacity
               </p>
             </div>
             {pinnedScenarios.length > 0 && (
               <button
                 onClick={() => setPinnedScenarios([])}
-                className="text-rose-400 hover:text-rose-300 text-xs flex items-center space-x-1"
+                className="text-[#B3402F] hover:text-[#8E2F20] text-xs flex items-center space-x-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Clear All Pinned</span>
@@ -850,10 +850,10 @@ export const SimulatorPage: React.FC = () => {
           </div>
 
           {pinnedScenarios.length === 0 ? (
-            <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-12 text-center space-y-3">
-              <BookmarkPlus className="w-10 h-10 text-slate-600 mx-auto" />
-              <h4 className="text-white font-bold text-sm">No Scenarios Pinned Yet</h4>
-              <p className="text-slate-400 text-xs max-w-md mx-auto">
+            <div className="bg-white border border-[#E3E3DE] rounded p-12 text-center space-y-3 shadow-sm">
+              <BookmarkPlus className="w-8 h-8 text-[#8C8C85] mx-auto" />
+              <h4 className="text-[#1A1A1A] font-bold text-sm">No Scenarios Pinned Yet</h4>
+              <p className="text-[#5C5C57] text-xs max-w-md mx-auto">
                 Execute a what-if run in the &quot;Run Simulator&quot; tab and click &quot;Pin for Comparison&quot; to
                 place up to three policy alternatives side-by-side.
               </p>
@@ -863,57 +863,58 @@ export const SimulatorPage: React.FC = () => {
               {pinnedScenarios.map((scen, idx) => (
                 <div
                   key={scen.id}
-                  className="bg-[#0c1220]/90 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4 flex flex-col justify-between"
+                  className="bg-white border border-[#E3E3DE] rounded p-5 shadow-sm space-y-4 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <span className="text-[10px] text-cyan-400 uppercase font-bold tracking-wider">
+                        <span className="text-[10px] text-[#2F5D8A] uppercase font-bold tracking-wider">
                           Option {idx + 1}
                         </span>
-                        <h4 className="text-white font-bold text-sm mt-0.5">{scen.name}</h4>
-                        <div className="text-[10px] text-slate-400 font-mono">
+                        <h4 className="text-[#1A1A1A] font-bold text-sm mt-0.5">{scen.name}</h4>
+                        <div className="text-[10px] text-[#5C5C57] font-mono">
                           {scen.horizon_days}d horizon • {scen.runs} runs • Seed {scen.seed}
                         </div>
                       </div>
                       <button
                         onClick={() => handleUnpinScenario(scen.id)}
-                        className="text-slate-500 hover:text-rose-400 transition"
+                        className="text-[#8C8C85] hover:text-[#B3402F] transition"
+                        title="Remove Option"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
                     {/* Parameters Details */}
-                    <div className="p-2.5 bg-slate-900 rounded border border-slate-800 text-[11px] space-y-1">
-                      <div className="text-slate-400 font-semibold uppercase text-[10px]">
+                    <div className="p-2.5 bg-[#F6F6F3] rounded border border-[#E3E3DE] text-[11px] space-y-1">
+                      <div className="text-[#5C5C57] font-semibold uppercase text-[10px]">
                         Configuration:
                       </div>
                       {Object.entries(scen.params).map(([k, v]) => (
-                        <div key={k} className="flex justify-between text-slate-300">
-                          <span className="text-slate-500">{k}:</span>
-                          <span className="font-bold text-white">{String(v)}</span>
+                        <div key={k} className="flex justify-between text-[#1A1A1A]">
+                          <span className="text-[#5C5C57]">{k}:</span>
+                          <span className="font-bold">{String(v)}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Metric Rows */}
                     <div className="space-y-2 pt-1">
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Availability (P50):</span>
-                        <span className="text-white font-bold">
+                      <div className="flex justify-between items-center py-1 border-b border-[#E3E3DE]">
+                        <span className="text-[#5C5C57]">Availability (P50):</span>
+                        <span className="text-[#1A1A1A] font-bold tabular-nums">
                           {(scen.scenario_p50 * 100).toFixed(1)}%{' '}
-                          <span className="text-[10px] text-slate-500 font-normal">
+                          <span className="text-[10px] text-[#5C5C57] font-normal">
                             (Base: {(scen.baseline_p50 * 100).toFixed(1)}%)
                           </span>
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Net Delta:</span>
+                      <div className="flex justify-between items-center py-1 border-b border-[#E3E3DE]">
+                        <span className="text-[#5C5C57]">Net Delta:</span>
                         <span
-                          className={`font-bold font-mono ${
-                            scen.avail_delta_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                          className={`font-bold font-mono tabular-nums ${
+                            scen.avail_delta_pct >= 0 ? 'text-[#2E7D4F]' : 'text-[#B3402F]'
                           }`}
                         >
                           {scen.avail_delta_pct >= 0 ? '+' : ''}
@@ -921,11 +922,11 @@ export const SimulatorPage: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Lost Days Delta:</span>
+                      <div className="flex justify-between items-center py-1 border-b border-[#E3E3DE]">
+                        <span className="text-[#5C5C57]">Lost Days Delta:</span>
                         <span
-                          className={`font-bold font-mono ${
-                            scen.days_lost_delta <= 0 ? 'text-emerald-400' : 'text-rose-400'
+                          className={`font-bold font-mono tabular-nums ${
+                            scen.days_lost_delta <= 0 ? 'text-[#2E7D4F]' : 'text-[#B3402F]'
                           }`}
                         >
                           {scen.days_lost_delta >= 0 ? '+' : ''}
@@ -933,11 +934,11 @@ export const SimulatorPage: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-                        <span className="text-slate-400">Stockout Risk:</span>
+                      <div className="flex justify-between items-center py-1 border-b border-[#E3E3DE]">
+                        <span className="text-[#5C5C57]">Stockout Risk:</span>
                         <span
-                          className={`font-bold font-mono ${
-                            scen.stockout_prob <= 0.05 ? 'text-cyan-400' : 'text-amber-400'
+                          className={`font-bold font-mono tabular-nums ${
+                            scen.stockout_prob <= 0.05 ? 'text-[#2F5D8A]' : 'text-[#A66A00]'
                           }`}
                         >
                           {(scen.stockout_prob * 100).toFixed(1)}%
@@ -946,20 +947,20 @@ export const SimulatorPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="pt-2">
-                    <div className="text-[10px] text-slate-500 mb-1">Downtime Causes:</div>
+                  <div className="pt-2 border-t border-[#E3E3DE]">
+                    <div className="text-[10px] text-[#5C5C57] mb-1 font-semibold">Downtime Causes:</div>
                     <div className="grid grid-cols-2 gap-1 text-[10px]">
-                      <span className="text-slate-400">
-                        Sched: {scen.by_cause_delta.scheduled || 0}d
+                      <span className="text-[#5C5C57]">
+                        Sched: <strong className="text-[#1A1A1A] tabular-nums">{scen.by_cause_delta.scheduled || 0}d</strong>
                       </span>
-                      <span className="text-slate-400">
-                        Unplanned: {scen.by_cause_delta.unscheduled || 0}d
+                      <span className="text-[#5C5C57]">
+                        Unplanned: <strong className="text-[#1A1A1A] tabular-nums">{scen.by_cause_delta.unscheduled || 0}d</strong>
                       </span>
-                      <span className="text-slate-400">
-                        Supply: {scen.by_cause_delta.supply_wait || 0}d
+                      <span className="text-[#5C5C57]">
+                        Supply: <strong className="text-[#1A1A1A] tabular-nums">{scen.by_cause_delta.supply_wait || 0}d</strong>
                       </span>
-                      <span className="text-slate-400">
-                        Bay Queue: {scen.by_cause_delta.agency_wait || 0}d
+                      <span className="text-[#5C5C57]">
+                        Bay Queue: <strong className="text-[#1A1A1A] tabular-nums">{scen.by_cause_delta.agency_wait || 0}d</strong>
                       </span>
                     </div>
                   </div>
@@ -972,13 +973,13 @@ export const SimulatorPage: React.FC = () => {
 
       {/* 4. TAB: AUDIT HISTORY */}
       {activeTab === 'history' && (
-        <div className="bg-[#0c1220]/80 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2 text-slate-200">
-              <History className="w-4 h-4 text-cyan-400" />
+        <div className="bg-white border border-[#E3E3DE] rounded p-5 shadow-sm space-y-4 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-[#E3E3DE] pb-3">
+            <div className="flex items-center space-x-2 text-[#1A1A1A]">
+              <History className="w-4 h-4 text-[#2F5D8A]" />
               <h3 className="font-bold text-sm uppercase">Persisted Simulation Runs (Audit Trail)</h3>
             </div>
-            <span className="text-slate-400 text-[11px]">Database logs from scenario_runs</span>
+            <span className="text-[#5C5C57] text-[11px]">Database logs from scenario_runs</span>
           </div>
 
           {loadingHistory ? (
@@ -992,7 +993,7 @@ export const SimulatorPage: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[11px]">
+                  <tr className="border-b border-[#E3E3DE] bg-[#FAFAF8] text-[#5C5C57] font-semibold text-[11px]">
                     <th className="py-2.5 px-3">Run ID</th>
                     <th className="py-2.5 px-3">Policy Type</th>
                     <th className="py-2.5 px-3">Executed At</th>
@@ -1000,20 +1001,20 @@ export const SimulatorPage: React.FC = () => {
                     <th className="py-2.5 px-3 text-right">RNG Seed</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-[#E3E3DE] text-[#1A1A1A]">
                   {scenarioHistory.map((h) => (
-                    <tr key={h.id} className="hover:bg-slate-800/30 transition">
-                      <td className="py-2.5 px-3 font-mono font-bold text-cyan-300">{h.id}</td>
-                      <td className="py-2.5 px-3 uppercase text-[11px] font-semibold text-slate-200">
+                    <tr key={h.id} className="hover:bg-[#F6F6F3] transition">
+                      <td className="py-2.5 px-3 font-mono font-bold text-[#2F5D8A]">{h.id}</td>
+                      <td className="py-2.5 px-3 uppercase text-[11px] font-semibold text-[#1A1A1A]">
                         {h.type}
                       </td>
-                      <td className="py-2.5 px-3 text-slate-400">
+                      <td className="py-2.5 px-3 text-[#5C5C57]">
                         {new Date(h.created_at).toLocaleString()}
                       </td>
-                      <td className="py-2.5 px-3 text-slate-300 font-semibold">
+                      <td className="py-2.5 px-3 text-[#1A1A1A] font-semibold">
                         {h.created_by || 'planner'}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono text-slate-400">{h.seed}</td>
+                      <td className="py-2.5 px-3 text-right font-mono text-[#5C5C57] tabular-nums">{h.seed}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1041,7 +1042,7 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
     if (!chartRef.current) return;
 
     if (!chartInstance.current) {
-      chartInstance.current = echarts.init(chartRef.current, 'dark', { renderer: 'canvas' });
+      chartInstance.current = echarts.init(chartRef.current, undefined, { renderer: 'canvas' });
     }
     const chart = chartInstance.current;
 
@@ -1069,9 +1070,10 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
       backgroundColor: 'transparent',
       tooltip: {
         trigger: 'axis',
-        backgroundColor: '#0c1220',
-        borderColor: '#1e293b',
-        textStyle: { color: '#e2e8f0', fontSize: 11, fontFamily: 'monospace' },
+        backgroundColor: '#FFFFFF',
+        borderColor: '#E3E3DE',
+        textStyle: { color: '#1A1A1A', fontSize: 11, fontFamily: 'IBM Plex Mono, monospace' },
+        extraCssText: 'box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-radius: 4px;',
         formatter: (params: unknown) => {
           const p = params as Array<{
             seriesName: string;
@@ -1094,14 +1096,14 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
           const delta = (s50 - b50).toFixed(1);
 
           return `
-            <div style="font-family: monospace;">
-              <div style="font-weight: bold; color: #38bdf8; margin-bottom: 4px;">${dayLabel} Projection</div>
-              <div style="color: #60a5fa;">● Baseline P50: <strong>${b50}%</strong> (${b10}%–${b90}%)</div>
-              <div style="color: #34d399;">● Scenario P50: <strong>${s50}%</strong> (${s10}%–${s90}%)</div>
-              <div style="margin-top: 4px; border-top: 1px solid #334155; padding-top: 4px; color: ${
-                Number(delta) >= 0 ? '#34d399' : '#f87171'
-              };">
-                Delta: <strong>${Number(delta) >= 0 ? '+' : ''}${delta}% points</strong>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
+              <div style="font-weight: bold; color: #1A1A1A; margin-bottom: 4px;">${dayLabel} Projection</div>
+              <div style="color: #2F5D8A;">● Baseline P50: <strong>${b50}%</strong> (${b10}%–${b90}%)</div>
+              <div style="color: #2E7D4F;">● Scenario P50: <strong>${s50}%</strong> (${s10}%–${s90}%)</div>
+              <div style="margin-top: 4px; border-top: 1px solid #E3E3DE; padding-top: 4px; color: ${
+                Number(delta) >= 0 ? '#2E7D4F' : '#B3402F'
+              }; font-weight: bold;">
+                Delta: ${Number(delta) >= 0 ? '+' : ''}${delta}% points
               </div>
             </div>
           `;
@@ -1109,7 +1111,7 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
       },
       legend: {
         data: ['Baseline (P50)', 'Scenario (P50)'],
-        textStyle: { color: '#94a3b8', fontSize: 10, fontFamily: 'monospace' },
+        textStyle: { color: '#5C5C57', fontSize: 10, fontFamily: 'IBM Plex Mono, monospace' },
         top: 0,
         right: 10,
       },
@@ -1123,21 +1125,22 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
       xAxis: {
         type: 'category',
         data: days,
-        axisLine: { lineStyle: { color: '#334155' } },
+        axisLine: { lineStyle: { color: '#E3E3DE' } },
         axisLabel: {
-          color: '#94a3b8',
+          color: '#5C5C57',
           fontSize: 10,
-          fontFamily: 'monospace',
+          fontFamily: 'IBM Plex Mono, monospace',
           interval: Math.max(1, Math.floor(horizon / 8)),
         },
       },
       yAxis: {
         type: 'value',
         name: 'Availability %',
+        nameTextStyle: { color: '#5C5C57', fontSize: 10, fontFamily: 'IBM Plex Sans, sans-serif' },
         min: 60,
         max: 100,
-        splitLine: { lineStyle: { color: '#1e293b' } },
-        axisLabel: { color: '#94a3b8', fontSize: 10 },
+        splitLine: { lineStyle: { color: '#ECECE8' } },
+        axisLabel: { color: '#5C5C57', fontSize: 10, fontFamily: 'IBM Plex Mono, monospace' },
       },
       series: [
         // Baseline Band Lower (invisible stack base)
@@ -1156,7 +1159,7 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
           type: 'line',
           data: baseBandDiff,
           lineStyle: { opacity: 0 },
-          areaStyle: { color: 'rgba(59, 130, 246, 0.12)' },
+          areaStyle: { color: 'rgba(47, 93, 138, 0.10)' },
           stack: 'base-band',
           symbol: 'none',
           tooltip: { show: false },
@@ -1177,7 +1180,7 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
           type: 'line',
           data: scenBandDiff,
           lineStyle: { opacity: 0 },
-          areaStyle: { color: 'rgba(16, 185, 129, 0.12)' },
+          areaStyle: { color: 'rgba(46, 125, 79, 0.12)' },
           stack: 'scen-band',
           symbol: 'none',
           tooltip: { show: false },
@@ -1187,8 +1190,8 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
           name: 'Baseline (P50)',
           type: 'line',
           data: baseP50,
-          itemStyle: { color: '#3b82f6' },
-          lineStyle: { width: 2.5, color: '#3b82f6', type: 'dashed' },
+          itemStyle: { color: '#2F5D8A' },
+          lineStyle: { width: 2, color: '#2F5D8A', type: 'dashed' },
           symbol: 'circle',
           symbolSize: 4,
         },
@@ -1197,8 +1200,8 @@ const ScenarioTrendChart: React.FC<ScenarioTrendChartProps> = ({ result }) => {
           name: 'Scenario (P50)',
           type: 'line',
           data: scenP50,
-          itemStyle: { color: '#10b981' },
-          lineStyle: { width: 3, color: '#10b981' },
+          itemStyle: { color: '#2E7D4F' },
+          lineStyle: { width: 2.5, color: '#2E7D4F' },
           symbol: 'circle',
           symbolSize: 4,
         },

@@ -9,51 +9,68 @@ interface StatusBadgeProps {
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'md', className = '' }) => {
   const norm = (status || '').toLowerCase().trim();
 
-  let colorClasses = 'bg-slate-800 text-slate-300 border-slate-700';
+  let dotColor = 'bg-[#7A7A75]';
+  let textColor = 'text-[#5C5C57]';
+  let bgColor = 'bg-[#F4F4F2]';
+  let borderColor = 'border-[#E3E3DE]';
 
-  if (norm.includes('available') || norm === 'serviceable' || norm === 'ok' || norm === 'completed' || norm === 'accepted') {
-    colorClasses = 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40';
-  } else if (norm.includes('scheduled') || norm === 'watch' || norm === 'in_stock') {
-    colorClasses = 'bg-blue-950/60 text-blue-300 border-blue-500/40';
+  if (
+    norm.includes('available') ||
+    norm === 'serviceable' ||
+    norm === 'ok' ||
+    norm === 'completed' ||
+    norm === 'accepted' ||
+    norm === 'healthy'
+  ) {
+    dotColor = 'bg-[#2E7D4F]';
+    textColor = 'text-[#2E7D4F]';
+    bgColor = 'bg-[#EDF6F0]';
+    borderColor = 'border-[#C8E6D3]';
+  } else if (
+    norm.includes('watch') ||
+    norm.includes('scheduled') ||
+    norm === 'in_stock' ||
+    norm === 'p2' ||
+    norm === 'high' ||
+    norm === 'low_stock' ||
+    norm === 'degraded' ||
+    norm === 'at risk' ||
+    norm === 'at_risk'
+  ) {
+    dotColor = 'bg-[#A66A00]';
+    textColor = 'text-[#A66A00]';
+    bgColor = 'bg-[#FEF7ED]';
+    borderColor = 'border-[#F8DCB5]';
   } else if (
     norm.includes('unscheduled') ||
     norm.includes('repair') ||
-    norm === 'high' ||
-    norm === 'p2' ||
-    norm === 'low_stock' ||
-    norm === 'degraded' ||
-    norm === 'at risk'
-  ) {
-    colorClasses = 'bg-amber-950/60 text-amber-300 border-amber-500/40';
-  } else if (
-    norm.includes('spares') ||
-    norm.includes('workshop') ||
-    norm.includes('agency') ||
-    norm === 'critical' ||
+    norm.includes('critical') ||
     norm === 'p1' ||
     norm === 'out_of_stock' ||
     norm === 'short' ||
-    norm === 'failed'
+    norm === 'failed' ||
+    norm.includes('spares') ||
+    norm.includes('workshop')
   ) {
-    colorClasses = 'bg-rose-950/60 text-rose-300 border-rose-500/40';
-  } else if (norm === 'p3') {
-    colorClasses = 'bg-cyan-950/60 text-cyan-300 border-cyan-500/40';
-  } else if (norm === 'p4' || norm === 'dismissed' || norm === 'low') {
-    colorClasses = 'bg-slate-800/80 text-slate-400 border-slate-700';
+    dotColor = 'bg-[#B3402F]';
+    textColor = 'text-[#B3402F]';
+    bgColor = 'bg-[#FDF2F0]';
+    borderColor = 'border-[#F5C2BC]';
   }
 
   const sizeClasses =
     size === 'sm'
-      ? 'px-2 py-0.5 text-[10px]'
+      ? 'px-1.5 py-0.5 text-[10px]'
       : size === 'lg'
-      ? 'px-3 py-1 text-sm font-semibold'
-      : 'px-2.5 py-0.5 text-xs';
+      ? 'px-2.5 py-1 text-xs font-semibold'
+      : 'px-2 py-0.5 text-[11px]';
 
   return (
     <span
-      className={`inline-flex items-center font-medium font-mono rounded border uppercase tracking-wider ${sizeClasses} ${colorClasses} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-mono font-medium rounded border ${sizeClasses} ${bgColor} ${borderColor} ${textColor} ${className}`}
     >
-      {status}
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+      <span className="truncate">{status}</span>
     </span>
   );
 };
